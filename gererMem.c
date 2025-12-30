@@ -13,7 +13,6 @@ typedef struct {
     // ...
 } InfoMem;
 
-// Fonction pour l'allocation d'espace
 void *myMalloc(size_t size, InfoMem *infoMem) {
     void* new_malloc = (void*) malloc(size);
     if (!new_malloc) {
