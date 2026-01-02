@@ -13,7 +13,7 @@ typedef struct {
 
 void usage(char * fichier) {
     printf("SYNOPSIS:\n");
-    printf("  %s [fichier] [-rwnapl] [...]\n\n", fichier);
+    printf("  %s [fichier] [-rwnapl] [n]\n\n", fichier);
     printf("DESCRIPTION:\n");
     printf("  Affiche le nombre et les mots dans les fichiers fournis.\n");
     printf("  Si aucun fichier n'est fourni, lit depuis l'entree standard.\n\n");
@@ -26,69 +26,102 @@ void usage(char * fichier) {
     printf("  -l    ecris les performances dans un fichier\n");
 }
 
-void OpenStrTab(histogramme h){
-    int taille = h->nbrMot;
+void InitHist(histogramme *h, InfoMem *i){
+    h->mots = (char **)myMalloc(sizeof(char *) * MAX_LENGTH, i);
+    h->occurrences = (int *)myMalloc(sizeof(int) * MAX_LENGTH, i);
+    h->nbrMot = 0;
+}
+
+void InitInfoMem(InfoMem *i){
+    i->cumul_alloc = 0;
+    i->cumul_desalloc = 0;
+    i->max_alloc = 0;
+}
+
+void ReadStrHist(histogramme h){
+    int taille = h.nbrMot;
     for (int i = 0; i < taille; i++) {
-        printf("%s\n", h->mots[i]);
+        printf("%s\n", h.mots[i]);
     }
 }
 
-int InTab(histogramme h){
-    char **tab = h->mots;
-    char *Current = h->mots[0];
-    for (int i = 0; i < 50; i++) {
-        if (Current){return 1;}
+int InHist(histogramme h, char *mot){
+    char **tab = h.mots;
+    for (int i = 0; i < h.nbrMot; i++) {
+        char *curr = tab[i];
+        if (strcmp(curr, mot) == 0){return i;}
     }
-    return 0;
+    return -1;
 }
 
-int FileReader(FILE * fichier, histogramme *h) {
+int DivLine(char *line, int start, char *mot) {
+    int i = start;
+    while (line[i] && (line[i] == ' ' || line[i] == '\t' || line[i] == '\n')) {
+        i++;
+    }
 
-    int mots = 0, inWord = 0;
-    int c;
-    char *buffer = (char *)myMalloc(sizeof( char )*MAX_LENGTH);
-    while (!(feof(fichier))) {
-        if (c == ' ' || c == '\n' || c == '\t') {
-            if (inWord) {mots++; inWord = 0;}
-        } else {inWord = 1;}
-    } if (inWord) {mots++;}
-    return mots;
+    int j = 0;
+    while (line[i] && line[i] != ' ' && line[i] != '\t' && line[i] != '\n') {
+        mot[j++] = line[i++];
+    }
+    mot[j] = '\0';
+
+    if (j>0){return i;}
+    return -1;
+}
+
+void FileReader(FILE * fichier, histogramme *h, InfoMem *i) {
+    size_t size = sizeof(char) * MAX_LENGTH;
+    char *buffer = (char *)myMalloc(size, i);
+    char mot[42];
+    
+    while (fgets(buffer, MAX_LENGTH, fichier) != NULL) {
+        if (ferror(fichier)) {
+            fprintf(stderr, "Reading error\n");
+            break;
+        }
+        
+        int pos = 0, taille = h->nbrMot;
+        while ((pos = DivLine(buffer, pos, mot)) != -1) {
+            int index = InHist(*h, mot);
+            if (index != -1) {h->occurrences[index]++;} 
+            else {
+                h->mots[taille] = (char *)myMalloc(strlen(mot) + 1, i);
+                strcpy(h->mots[taille], mot);
+                h->occurrences[taille] = 1;
+                taille++;
+            }
+        }
+        h->nbrMot = taille;
+    }
+
+    myFree(buffer, i, size);
 }
 
 int main(int argc, const char * argv[]) {
-    int afficherMots = 0;
-    
-    if (argc > 1 && argv[1][0] == '-') {
-        const char * options = argv[1] + 1;
-        
-        int optionValide = 1;
-        for (int i = 0; options[i] != '\0'; i++) {
-            if (options[i] != 'm') {
-                optionValide = 0; break;
-            }
-        }
-        if (!optionValide) {
-            fprintf(stderr, "Erreur: option invalide '%s'\n\n", argv[1]);
-            usage((char *)argv[0]); return 1;
-        }
-        for (int i = 0; options[i] != '\0'; i++) {
-            if (options[i] == 'm') {afficherMots = 1;}
-        }
-    }
+    printf("Initialisation...\n");
+    histogramme occ;
+    InfoMem infomem;
+    InitInfoMem(&infomem);
+    InitHist(&occ, &infomem);
 
+    printf("affichage de l'histogramme (normalement vide):\n");
+    ReadStrHist(occ);
+
+    printf("Le bordel du fgets:\n");
     if (argc < 2) {
-        int mots = FileReader(stdin);
-        if (afficherMots) printf("%d ", mots);
+        FileReader(stdin, &occ, &infomem);
         printf("\n");
     } else {
-        FILE * f = fopen(argv[2], "r");
+        FILE * f = fopen(argv[1], "r");
         if (f == NULL) {
             fprintf(stderr, "Erreur: impossible d'ouvrir le fichier '%s'\n", argv[2]);
         }
-        int mots = FileReader(f);
+        FileReader(f, &occ, &infomem);
         fclose(f);
-        printf("Dans le fichier '%s':\n", argv[2]);
-        if (afficherMots) {printf("Il y a %d mots dans le fichier %s.\n", mots, argv[2]);}
+    }
+    for(int i = 0; i < occ.nbrMot; i++){
+        printf("%s : %d\n", occ.mots[i], occ.occurrences[i]);
     }
     
     return 0;
