@@ -3,6 +3,8 @@
 #include <string.h>
 #include "gererMem.h"
 
+#define MAX_LENGTH 200
+
 // Algorithme qui utilise des listes chainée ordonnée pour compter le nombre d'occurence des mot du texte
 
 
@@ -30,7 +32,7 @@ Cellule_mot* Cree_Cellule_mot(char* mot, InfoMem* infoMem) {
 }
 
 // Supprime et renvoie la cellule 
-Cellule_mot* Supp_Cellule_mot(Cellule_mot** ppcell, InfoMem* infoMem) {
+Cellule_mot* Supp_Cellule_mot(Cellule_mot** ppcell) {
 
     if (!(*ppcell)) {
         return NULL;
@@ -99,57 +101,93 @@ int peut_ouvrir_fichier(char * chemin) {
     return 1;
 }
 
-// Trouve et renvoie le prochain mot du fochier
-char* Recherche_mot(FILE * fichier, InfoMem* infoMem) {
-    
-    char c;
-    int taille = 3, nb_char = 0;
-    char* mot = (char*) myMalloc(sizeof(char)*3, infoMem);
+// Parcours une ligne du fichier et renvoie le prochain mot
+int recherche_mot(char* ligne, int index_ligne, char* mot, int taille_mot, InfoMem* infoMem) {
 
-    if (!mot) {
-        return NULL;
+    // Parcour jusqu'à trouver une lettre
+    while (ligne[index_ligne] && (ligne[index_ligne] == ' ' || ligne[index_ligne] == '\t' || ligne[index_ligne] == '\n' || ligne[index_ligne] == ',' || ligne[index_ligne] == '.')) {
+        index_ligne++;
     }
 
-    // Tant que l'on a un caractère
-    while ((c = getc(fichier)) != -1) {
-        // ASCII pour retour à la ligne, espace et point
-        if (c != 10 && c != 32 && c != 46) {
-            // Si il n'y a plus de place pour ajouté une lettre, on agrandi mot
-            if (nb_char >= taille) {
-                mot = (char*) myRealloc(mot, taille*2, infoMem, taille);
-                if (!mot) {
-                    return NULL;
-                }
-                taille *= 2;
+    // Parcours du mot
+    int index_mot = 0;
+    while (ligne[index_ligne] && (ligne[index_ligne] != ' ' && ligne[index_ligne] != '\t' && ligne[index_ligne] != '\n' && ligne[index_ligne] != ',' && ligne[index_ligne] != '.')) {
+        if (index_mot >= taille_mot) {
+            mot = (char*) myRealloc(mot, sizeof(char)*taille_mot*2, infoMem, sizeof(char)*taille_mot);
+            if (!mot) {
+                return -1;
             }
-            mot[nb_char] = c;
-            nb_char++;
+            taille_mot *= 2;
         }
-        else {
-            break;
-        }
+        mot[index_mot] = ligne[index_ligne];
+        index_ligne++;
+        index_mot++;
     }
-    if (nb_char >= taille) {
-        mot = (char*) myRealloc(mot, taille*2, infoMem, taille);
+    if (index_mot >= taille_mot) {
+        mot = (char*) myRealloc(mot, sizeof(char)*taille_mot*2, infoMem, sizeof(char)*taille_mot);
         if (!mot) {
-            return NULL;
+            return -1;
         }
-        taille *= 2;
+        taille_mot *= 2;
     }
-    if (c != -1) {
-         mot[nb_char] = '\0';
-        nb_char++;
-        return mot;
+    mot[index_mot] = '\0';
+
+    if (index_mot>0) {
+        return index_ligne;
     }
-    return NULL;
-   
+    return -1;
 }
 
-void Affiche_mot(char* mot) {
+// Algo entier avec les listes chainées
+int Algo_lst_chaine(FILE* fichier, Cellule_mot** plst, InfoMem* infoMem) {
 
-    printf("%s\n", mot);
+    char* ligne = (char*) myMalloc(sizeof(char)*MAX_LENGTH, infoMem);
+    if (!ligne) {
+        printf("Problème allocation pour ligne\n");
+        return 0;
+    }
+
+    char* buffer_mot = (char*) myMalloc(sizeof(char)*50, infoMem);
+    if (!buffer_mot) {
+        printf("Problème allocation pour mot\n");
+        return 0;
+    }
+
+    while (!feof(fichier)) {
+        char* ligne_lu = fgets(ligne, sizeof(char)*MAX_LENGTH, fichier);
+        if (!ligne_lu) {
+            printf("Erreur de lecture\n");
+            return 0;
+        }
+
+        int index_ligne = 0;
+        while((index_ligne = recherche_mot(ligne, index_ligne, buffer_mot, 50, infoMem)) != -1) {
+
+            char* mot = (char*) myMalloc(sizeof(char)*(strlen(buffer_mot) + 1), infoMem);
+            strcpy(mot, buffer_mot);
+            Cellule_mot** pcell_supp = Mot_in_liste(plst, mot);
+            // Mot dans liste
+            if (pcell_supp) {
+                Cellule_mot* cell_supp = Supp_Cellule_mot(pcell_supp);
+                cell_supp->nb_occ ++;
+                Add_Cellule_mot(plst, cell_supp);
+            }
+            // Mot pas dans liste
+            else {
+                Cellule_mot* new_cell = Cree_Cellule_mot(mot, infoMem);
+                if (!new_cell) {
+                    printf("Problème allocation pour cellule mot\n");
+                    return 0;
+                }
+                Add_Cellule_mot(plst, new_cell);
+            }
+
+            printf("Nouvelle etat de la liste : ");
+            Affiche_liste_chaine(plst);
+        }
+    }
+    return 1;
 }
-
 
 // Processus :
 // 1) On regarde si le mot est dans la liste
@@ -158,66 +196,88 @@ void Affiche_mot(char* mot) {
 
 // A répéter jusqu'à la fin du fichier texte. On Obtient en début de liste les mot les plus occurent
 
+// Test simple pour les fonction de liste chainée
+//InfoMem* infoMem = (InfoMem*) malloc(sizeof(InfoMem));
+// if (!infoMem) {
+//     printf("probleme malloc infomem\n");
+//     return 0;
+// }
+// // Uniquement lors des test car les mot seront réccupéré du texte
+// char * mot1 = (char*) myMalloc(sizeof(char) * strlen("bonjour"), infoMem);
+// char * mot2 = (char*) myMalloc(sizeof(char) * strlen("bonsoir"), infoMem);
+// char * mot3 = (char*) myMalloc(sizeof(char) * strlen("salut"), infoMem);
+// char * mot4 = (char*) myMalloc(sizeof(char) * strlen("pharrel"), infoMem);
+// if (!mot1) {
+//     printf("probleme malloc mot1\n");
+//     return 0;
+// }
+// mot1 = "bonjour";
+// mot2 = "bonsoir";
+// mot3 = "salut";
+// mot4 = "pharrel";
+
+
+// Liste lst_chaine = NULL;
+// Cellule_mot* cell1 = Cree_Cellule_mot(mot1, infoMem);
+// Cellule_mot* cell2 = Cree_Cellule_mot(mot2, infoMem);
+// Cellule_mot* cell3 = Cree_Cellule_mot(mot3, infoMem);
+// Cellule_mot* cell4 = Cree_Cellule_mot(mot4, infoMem);
+
+// Add_Cellule_mot(&lst_chaine, cell1);
+// Add_Cellule_mot(&lst_chaine, cell2);
+// Add_Cellule_mot(&lst_chaine, cell3);
+
+// printf("Etat initiale de la liste : ");
+// Affiche_liste_chaine(&lst_chaine);
+// printf("\n");
+
+// if (Mot_in_liste(&lst_chaine, "bonjour")) {
+//     printf("le mot 'bonjour' est dans la liste\n");
+//     printf("On augmente le nombre d'occurence du mot 'bonjour'\n");
+//     Cellule_mot** pdeleted_cell = Mot_in_liste(&lst_chaine, "bonjour"); // pdeleted_cell est un pointeur de pointeur vers la case qui contient le mot (un pointeur sur le 'suivant' du mot précédent)
+//     Cellule_mot* cell = Supp_Cellule_mot(pdeleted_cell);
+//     cell->nb_occ++;
+//     Add_Cellule_mot(&lst_chaine, cell);
+//     printf("Etat de la liste apres modif occ: ");
+//     Affiche_liste_chaine(&lst_chaine);
+//     printf("\n");
+// }
+
+// Add_Cellule_mot(&lst_chaine, cell4);
+// printf("Ajout de 'pharrel'\n");
+// printf("Etat de la liste apres ajout: ");
+// Affiche_liste_chaine(&lst_chaine);
+// printf("\n");
+
+
+// Free_liste(&lst_chaine, infoMem);
+
+// printf("malloc : %d, free : %d, max : %d\n", (int) infoMem->cumul_alloc, (int) infoMem->cumul_desalloc, (int) infoMem->max_alloc);
+// free(infoMem);
+
 int main(void) {
 
-    InfoMem* infoMem = (InfoMem*) malloc(sizeof(InfoMem));
-    if (!infoMem) {
-        printf("probleme malloc infomem\n");
-        return 0;
+    if (peut_ouvrir_fichier("test.txt")) {
+        FILE* fichier = fopen("test.txt", "r");
+        Liste lst = NULL;
+        InfoMem* infoMem = malloc(sizeof(InfoMem));
+        if (!infoMem) {
+            printf("Probleme malloc infoMem\n");
+            return 0;
+        }
+        printf("Etat initial de la liste (NULL) :");
+        Affiche_liste_chaine(&lst);
+
+        printf("\nAppel de l'algo\n");
+        Algo_lst_chaine(fichier, &lst, infoMem);
+
+        printf("\nEtat final de la liste :");
+        Affiche_liste_chaine(&lst);
+
+        Free_liste(&lst, infoMem);
+
+        fclose(fichier);
     }
-    // Uniquement lors des test car les mot seront réccupéré du texte
-    char * mot1 = (char*) myMalloc(sizeof(char) * strlen("bonjour"), infoMem);
-    char * mot2 = (char*) myMalloc(sizeof(char) * strlen("bonsoir"), infoMem);
-    char * mot3 = (char*) myMalloc(sizeof(char) * strlen("salut"), infoMem);
-    char * mot4 = (char*) myMalloc(sizeof(char) * strlen("pharrel"), infoMem);
-    if (!mot1) {
-        printf("probleme malloc mot1\n");
-        return 0;
-    }
-    mot1 = "bonjour";
-    mot2 = "bonsoir";
-    mot3 = "salut";
-    mot4 = "pharrel";
-
-
-    Liste lst_chaine = NULL;
-    Cellule_mot* cell1 = Cree_Cellule_mot(mot1, infoMem);
-    Cellule_mot* cell2 = Cree_Cellule_mot(mot2, infoMem);
-    Cellule_mot* cell3 = Cree_Cellule_mot(mot3, infoMem);
-    Cellule_mot* cell4 = Cree_Cellule_mot(mot4, infoMem);
-
-    Add_Cellule_mot(&lst_chaine, cell1);
-    Add_Cellule_mot(&lst_chaine, cell2);
-    Add_Cellule_mot(&lst_chaine, cell3);
-
-    printf("Etat initiale de la liste : ");
-    Affiche_liste_chaine(&lst_chaine);
-    printf("\n");
-
-    if (Mot_in_liste(&lst_chaine, "bonjour")) {
-        printf("le mot 'bonjour' est dans la liste\n");
-        printf("On augmente le nombre d'occurence du mot 'bonjour'\n");
-        Cellule_mot** pdeleted_cell = Mot_in_liste(&lst_chaine, "bonjour"); // pdeleted_cell est un pointeur de pointeur vers la case qui contient le mot (un pointeur sur le 'suivant' du mot précédent)
-        Cellule_mot* cell = Supp_Cellule_mot(pdeleted_cell, infoMem);
-        cell->nb_occ++;
-        Add_Cellule_mot(&lst_chaine, cell);
-        printf("Etat de la liste apres modif occ: ");
-        Affiche_liste_chaine(&lst_chaine);
-        printf("\n");
-    }
-
-    Add_Cellule_mot(&lst_chaine, cell4);
-    printf("Ajout de 'pharrel'\n");
-    printf("Etat de la liste apres ajout: ");
-    Affiche_liste_chaine(&lst_chaine);
-    printf("\n");
-
-
-    Free_liste(&lst_chaine, infoMem);
-
-    printf("malloc : %d, free : %d, max : %d\n", (int) infoMem->cumul_alloc, (int) infoMem->cumul_desalloc, (int) infoMem->max_alloc);
-    free(infoMem);
-
     return 0;
 }
 
