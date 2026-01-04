@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "gererMem.h"
 
 #define MAX_LENGTH 200
@@ -73,6 +74,7 @@ void Free_liste(Cellule_mot** plst, InfoMem* infoMem) {
     Cellule_mot* next_cell;
     for (; *plst; plst = &(next_cell)) {
         next_cell = (*plst)->suivant;
+        myFree((*plst)->mot, infoMem, sizeof(char)*strlen((*plst)->mot));
         myFree(*plst, infoMem, sizeof(Cellule_mot));
         *plst = NULL;
     }
@@ -166,7 +168,7 @@ int Algo_lst_chaine(FILE* fichier, Cellule_mot** plst, InfoMem* infoMem) {
         // On vérifie si la ligne à bien été lu
         char* ligne_lu = fgets(ligne, sizeof(char)*MAX_LENGTH, fichier);
         if (!ligne_lu) {
-            printf("Erreur de lecture\n");
+            //printf("Fin de fichier\n");
             return -1;
         }
 
@@ -195,16 +197,49 @@ int Algo_lst_chaine(FILE* fichier, Cellule_mot** plst, InfoMem* infoMem) {
                 Add_Cellule_mot(plst, new_cell);
             }
 
-            printf("Nouvelle etat de la liste : ");
-            Affiche_liste_chaine(plst);
+            // printf("Nouvelle etat de la liste : ");
+            // Affiche_liste_chaine(plst);
         }
     }
+    myFree(ligne, infoMem, sizeof(char)*MAX_LENGTH);
+    myFree(buffer_mot, infoMem, sizeof(char)*taille_buffer_mot);
     return 1;
+}
+
+// Compte le nombre de mot dans le fichier avec la liste
+int Compte_mot(Cellule_mot** plst) {
+
+    int nb_mot = 0;
+    for (; *plst; plst = &((*plst)->suivant)) {
+        nb_mot += (*plst)->nb_occ;
+    }
+    return nb_mot;
+}
+
+// Ecrit les résultats de performance dans le fichier
+void Ecrit_resultats(FILE* fichier, Cellule_mot** plst, int nb_mot_choisi) {
+
+    int nb_mot = 0;
+    for (; *plst && nb_mot < nb_mot_choisi; plst = &((*plst)->suivant), nb_mot++) {
+        fprintf(fichier, "%s %d\n", (*plst)->mot, (*plst)->nb_occ);
+    }
+}
+
+void Ecrit_performances(FILE * fichier, InfoMem* infoMem, int nb_mot, time_t debut, time_t fin) {
+
+    fprintf(fichier, "%d\n", nb_mot);
+    fprintf(fichier, "%lld\n", fin - debut);
+    fprintf(fichier, "%zu\n", infoMem->cumul_alloc);
+    fprintf(fichier, "%zu\n", infoMem->cumul_desalloc);
+    fprintf(fichier, "%zu\n", infoMem->max_alloc);
 }
 
 int main(void) {
 
     if (peut_ouvrir_fichier("test.txt")) {
+        time_t debut, fin;
+        debut = time(NULL);
+
         FILE* fichier = fopen("test.txt", "r");
         Liste lst = NULL;
         InfoMem* infoMem = malloc(sizeof(InfoMem));
@@ -221,9 +256,27 @@ int main(void) {
         printf("\nEtat final de la liste :");
         Affiche_liste_chaine(&lst);
 
+        FILE* resultat_mot = fopen("resultat_mot.txt", "w");
+        Ecrit_resultats(resultat_mot, &lst, 10);
+        fclose(resultat_mot);
+
+        int nb_mot = Compte_mot(&lst);
+
         Free_liste(&lst, infoMem);
 
         fclose(fichier);
+
+        fin = time(NULL);
+        FILE* resultat_perf = fopen("resultat_perf.txt", "w");
+        Ecrit_performances(resultat_perf, infoMem, nb_mot, debut, fin);
+        fclose(resultat_perf);
+
+        printf("\n=== Statistiques memoire ===\n");
+        printf("Memoire allouee: %zu bytes\n", infoMem->cumul_alloc);
+        printf("Memoire liberee: %zu bytes\n", infoMem->cumul_desalloc);
+        printf("Pic d'allocation: %zu bytes\n", infoMem->max_alloc);
+
+        free(infoMem);
     }
     return 0;
 }
