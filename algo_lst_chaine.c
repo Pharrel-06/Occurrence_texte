@@ -3,18 +3,7 @@
 #include <string.h>
 #include <time.h>
 #include "gererMem.h"
-
-#define MAX_LENGTH 200
-
-// Algorithme qui utilise des listes chainée ordonnée pour compter le nombre d'occurence des mot du texte
-
-
-// Structure de la liste chainée
-typedef struct cellule_mot {
-    char* mot;
-    int nb_occ;
-    struct cellule_mot* suivant;
-} Cellule_mot, *Liste;
+#include "algo_lst_chaine.h"
 
 
 // Fonction de base pour la manipulation de liste chainée
@@ -91,17 +80,6 @@ void Affiche_liste_chaine(Cellule_mot** plst) {
 
 
 // Fonction de manipulation de fichier
-
-// Vérifie si un fichier peut être ouvert
-int peut_ouvrir_fichier(char * chemin) {
-
-    FILE * ouvert = fopen(chemin, "r");
-    if (ouvert == NULL) {
-        return 0;
-    }
-    fclose(ouvert);
-    return 1;
-}
 
 // Parcours une ligne du fichier et renvoie le prochain mot
 int recherche_mot(char* ligne, int index_ligne, char** mot, int *taille_buffer_mot, InfoMem* infoMem) {
@@ -196,88 +174,10 @@ int Algo_lst_chaine(FILE* fichier, Cellule_mot** plst, InfoMem* infoMem) {
                 }
                 Add_Cellule_mot(plst, new_cell);
             }
-
-            // printf("Nouvelle etat de la liste : ");
-            // Affiche_liste_chaine(plst);
         }
     }
     myFree(ligne, infoMem, sizeof(char)*MAX_LENGTH);
     myFree(buffer_mot, infoMem, sizeof(char)*taille_buffer_mot);
     return 1;
-}
-
-// Compte le nombre de mot dans le fichier avec la liste
-int Compte_mot(Cellule_mot** plst) {
-
-    int nb_mot = 0;
-    for (; *plst; plst = &((*plst)->suivant)) {
-        nb_mot += (*plst)->nb_occ;
-    }
-    return nb_mot;
-}
-
-// Ecrit les résultats de performance dans le fichier
-void Ecrit_resultats(FILE* fichier, Cellule_mot** plst, int nb_mot_choisi) {
-
-    int nb_mot = 0;
-    for (; *plst && nb_mot < nb_mot_choisi; plst = &((*plst)->suivant), nb_mot++) {
-        fprintf(fichier, "%s %d\n", (*plst)->mot, (*plst)->nb_occ);
-    }
-}
-
-void Ecrit_performances(FILE * fichier, InfoMem* infoMem, int nb_mot, time_t debut, time_t fin) {
-
-    fprintf(fichier, "%d\n", nb_mot);
-    fprintf(fichier, "%lld\n", fin - debut);
-    fprintf(fichier, "%zu\n", infoMem->cumul_alloc);
-    fprintf(fichier, "%zu\n", infoMem->cumul_desalloc);
-    fprintf(fichier, "%zu\n", infoMem->max_alloc);
-}
-
-int main(void) {
-
-    if (peut_ouvrir_fichier("test.txt")) {
-        time_t debut, fin;
-        debut = time(NULL);
-
-        FILE* fichier = fopen("test.txt", "r");
-        Liste lst = NULL;
-        InfoMem* infoMem = malloc(sizeof(InfoMem));
-        if (!infoMem) {
-            printf("Probleme malloc infoMem\n");
-            return 0;
-        }
-        printf("Etat initial de la liste (NULL) :");
-        Affiche_liste_chaine(&lst);
-
-        printf("\nAppel de l'algo\n");
-        Algo_lst_chaine(fichier, &lst, infoMem);
-
-        printf("\nEtat final de la liste :");
-        Affiche_liste_chaine(&lst);
-
-        FILE* resultat_mot = fopen("resultat_mot.txt", "w");
-        Ecrit_resultats(resultat_mot, &lst, 10);
-        fclose(resultat_mot);
-
-        int nb_mot = Compte_mot(&lst);
-
-        Free_liste(&lst, infoMem);
-
-        fclose(fichier);
-
-        fin = time(NULL);
-        FILE* resultat_perf = fopen("resultat_perf.txt", "w");
-        Ecrit_performances(resultat_perf, infoMem, nb_mot, debut, fin);
-        fclose(resultat_perf);
-
-        printf("\n=== Statistiques memoire ===\n");
-        printf("Memoire allouee: %zu bytes\n", infoMem->cumul_alloc);
-        printf("Memoire liberee: %zu bytes\n", infoMem->cumul_desalloc);
-        printf("Pic d'allocation: %zu bytes\n", infoMem->max_alloc);
-
-        free(infoMem);
-    }
-    return 0;
 }
 

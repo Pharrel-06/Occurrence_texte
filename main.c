@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "algo_hist.h"
+#include "algo_lst_chaine.h"
 #include "gererMem.h"
 
 void usage(char * fichier) {
@@ -45,6 +46,16 @@ int main(int argc, const char * argv[]) {
         FileReader(f, &occ, &infomem);
         fclose(f);
     }
+    // A mettre dans la partie pour utiliser l'algo de liste chaine
+    // FILE * f = fopen(argv[1], "r");
+    // if (f == NULL) {
+    //     fprintf(stderr, "Erreur: impossible d'ouvrir le fichier '%s'\n", argv[1]);
+    //     return EXIT_FAILURE;
+    // }
+    // printf("Lecture du fichier '%s'...\n", argv[1]);
+    // Liste lst = NULL;
+    // Algo_lst_chaine(f, &lst, &infomem);
+    // fclose(f);
 
     AfficherHistogramme(occ);
 
