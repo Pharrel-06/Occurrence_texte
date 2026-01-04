@@ -8,18 +8,20 @@ void InitHist(histogramme *h, InfoMem *i){
     h->mots = (char **)myMalloc(sizeof(char *) * MAX_LENGTH, i);
     h->occurrences = (int *)myMalloc(sizeof(int) * MAX_LENGTH, i);
     h->nbrMot = 0;
-}
-
-void InitInfoMem(InfoMem *i){
-    i->cumul_alloc = 0;
-    i->cumul_desalloc = 0;
-    i->max_alloc = 0;
+    h->taille_allouee = MAX_LENGTH;
 }
 
 void ReadStrHist(histogramme h){
     int taille = h.nbrMot;
     for (int i = 0; i < taille; i++) {
         printf("%s\n", h.mots[i]);
+    }
+}
+
+void AfficherHistogramme(histogramme occ) {
+    printf("\n=== Résultats ===\n");
+    for(int i = 0; i < occ.nbrMot; i++){
+        printf("%s : %d\n", occ.mots[i], occ.occurrences[i]);
     }
 }
 
@@ -40,18 +42,38 @@ int DivLine(char *line, int start, char *mot) {
 
     int j = 0;
     while (line[i] && line[i] != ' ' && line[i] != '\t' && line[i] != '\n') {
-        mot[j++] = line[i++];
+        if (j < 41) {
+            mot[j++] = line[i];
+        }
+        i++;
     }
     mot[j] = '\0';
 
-    if (j>0){return i;}
+    if (j > 41) {return i;}
+    if (j > 0) {return i;}
     return -1;
+}
+
+void MaxSizePlus(histogramme *h, InfoMem *i){
+    int nouvelle_taille = h->taille_allouee * 2;
+    h->mots = (char **)myRealloc(h->mots, sizeof(char *) * nouvelle_taille, i, sizeof(char *) * h->taille_allouee);
+    h->occurrences = (int *)myRealloc(h->occurrences, sizeof(int) * nouvelle_taille, i, sizeof(int) * h->taille_allouee);
+    h->taille_allouee = nouvelle_taille;
+}
+
+int HistWordCount(histogramme h){
+    int count = 0;
+    for(int i = 0; i < h.nbrMot; i++){
+        count += h.occurrences[i];
+    }
+    return count;
 }
 
 void FileReader(FILE * fichier, histogramme *h, InfoMem *i) {
     size_t size = sizeof(char) * MAX_LENGTH;
     char *buffer = (char *)myMalloc(size, i);
     char mot[42];
+    i->temps_debut = time(NULL);
     
     while (fgets(buffer, MAX_LENGTH, fichier) != NULL) {
         if (ferror(fichier)) {
@@ -60,36 +82,72 @@ void FileReader(FILE * fichier, histogramme *h, InfoMem *i) {
         }
         
         int pos = 0;
-        while ((pos = DivLine(buffer, pos, mot)) != -1) {
-            int index = InHist(*h, mot);
-            if (index != -1) {
-                h->occurrences[index]++;
-            } else {
-                h->mots[h->nbrMot] = (char *)myMalloc(strlen(mot) + 1, i);
-                strcpy(h->mots[h->nbrMot], mot);
-                h->occurrences[h->nbrMot] = 1;
-                h->nbrMot++;
+            while ((pos = DivLine(buffer, pos, mot)) != -1) {
+                if (strlen(mot) == 0) {
+                    continue;
+                }
+                int index = InHist(*h, mot);
+                if (index != -1) {
+                    h->occurrences[index]++;
+                } else {
+                    if (h->nbrMot >= h->taille_allouee) {
+                        MaxSizePlus(h, i);
+                    }
+                    h->mots[h->nbrMot] = (char *)myMalloc(strlen(mot) + 1, i);
+                    strcpy(h->mots[h->nbrMot], mot);
+                    h->occurrences[h->nbrMot] = 1;
+                    h->nbrMot++;
+                }
             }
-        }
     }
-
     myFree(buffer, i, size);
+    i->temps_fin = time(NULL);
+    i->cumul_temps += i->temps_fin - i->temps_debut;
+    i->temps_debut = 0; i->temps_fin = 0;
 }
 
 void FreeHistogramme(histogramme *h, InfoMem *i) {
     for (int j = 0; j < h->nbrMot; j++) {
         myFree(h->mots[j], i, strlen(h->mots[j]) + 1);
     }
-    myFree(h->mots, i, sizeof(char *) * MAX_LENGTH);
-    myFree(h->occurrences, i, sizeof(int) * MAX_LENGTH);
+    myFree(h->mots, i, sizeof(char *) * h->taille_allouee);
+    myFree(h->occurrences, i, sizeof(int) * h->taille_allouee);
     h->nbrMot = 0;
+    h->taille_allouee = 0;
 }
 
-void MaxSizePlus(histogramme *h, InfoMem *i){
-    h->mots = (char **)myRealloc(h->mots, sizeof(char *) * (h->nbrMot*2), i, sizeof(char *) * h->nbrMot);
-    h->occurrences = (int *)myRealloc(h->occurrences, sizeof(int) * (h->nbrMot*2), i, sizeof(int) * h->nbrMot);
+void TopNmot(histogramme *h, int n, InfoMem *i) {
+    i->temps_debut = time(NULL);
+    if (n <= 0 || n > h->nbrMot) return;
+    
+    int *indices = (int *)myMalloc(sizeof(int) * n, i);
+    int found = 0;
+    
+    for (int i = 0; i < h->nbrMot; i++) {
+        int j = found;
+        while (j > 0 && h->occurrences[i] > h->occurrences[indices[j-1]]) {
+            indices[j] = indices[j-1];
+            j--;
+        }
+        if (found < n) {
+            indices[j] = i;
+            found++;
+        } else if (h->occurrences[i] > h->occurrences[indices[n-1]]) {
+            indices[j] = i;
+        }
+    }
+    
+    printf("\n=== Résultats ====\n");
+    printf("=== Top %d mots ===\n", found);
+    for (int i = 0; i < found; i++) {
+        printf("%s : %d\n", h->mots[indices[i]], h->occurrences[indices[i]]);
+    }
+    
+    myFree(indices, i, sizeof(int) * n);
+    i->temps_fin = time(NULL);
+    i->cumul_temps += i->temps_fin - i->temps_debut;
+    i->temps_debut = 0; i->temps_fin = 0;
 }
-
 
 // Echange 2 mots et leurs occurence dans l'histogramme
 void swap(histogramme* h, int i, int j) {
@@ -113,7 +171,9 @@ int RechercheMax(histogramme* h, int debut) {
 }
 
 // Trie l'histogramme par ordre décroissant
-void TrieHistogramme(histogramme* h) {
+void TrieHistogramme(histogramme* h, InfoMem *i) {
+    i->temps_debut = time(NULL);
+
     int index_max;
     int current_index = 0;
     while (current_index < h->nbrMot) {
@@ -121,4 +181,8 @@ void TrieHistogramme(histogramme* h) {
         swap(h, current_index, index_max);
         current_index++;
     }
+
+    i->temps_fin = time(NULL);
+    i->cumul_temps += i->temps_fin - i->temps_debut;
+    i->temps_debut = 0; i->temps_fin = 0;
 }

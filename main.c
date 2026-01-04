@@ -5,6 +5,16 @@
 #include "algo_lst_chaine.h"
 #include "gererMem.h"
 
+void InitInfoMem(InfoMem *i){
+    i->cumul_alloc = 0;
+    i->cumul_desalloc = 0;
+    i->max_alloc = 0;
+
+    i->temps_debut = 0;
+    i->temps_fin = 0;
+    i->cumul_temps = 0;
+}
+
 void usage(char * fichier) {
     fprintf(stdout, "SYNOPSIS:\n");
     fprintf(stdout, "  %s [-n int] [-a algo1|algo2|algo3|…] [—help] [-r] [-w fileRes] [-p] [-l filePerf] [fichier] [...]\n\n", fichier);
@@ -21,11 +31,12 @@ void usage(char * fichier) {
     fprintf(stdout, "  -l    ecris les performances dans un fichier\n");
 }
 
-void AfficherHistogramme(histogramme occ) {
-    printf("\n=== Résultats ===\n");
-    for(int i = 0; i < occ.nbrMot; i++){
-        printf("%s : %d\n", occ.mots[i], occ.occurrences[i]);
-    }
+void showPerfs(InfoMem i) {
+    fprintf(stdout, "\n=== Statistiques mémoire ===\n");
+    fprintf(stdout, "Temps d'execution: %ld\n", i.cumul_temps);
+    fprintf(stdout, "Mémoire allouée: %zu\n", i.cumul_alloc);
+    fprintf(stdout, "Mémoire libérée: %zu\n", i.cumul_desalloc);
+    fprintf(stdout, "Pic d'allocation: %zu\n", i.max_alloc);
 }
 
 int main(int argc, const char * argv[]) {
@@ -35,47 +46,67 @@ int main(int argc, const char * argv[]) {
     InitHist(&occ, &infomem);
 
     if (argc < 2) {
-        printf("Lecture depuis l'entree standard...\n");
+        fprintf(stdout, "Lecture depuis l'entree standard...\n");
         FileReader(stdin, &occ, &infomem);
     } else {
         int nbr = 10, help = 0, showres = 0, logres = 0, showperf = 0, logperf = 0;
         char * choix_algo = (char *)malloc(sizeof(char)*5);
 
         for(int arg = 1; arg < argc; arg++){
-            if (argv[arg] == "-n"){nbr = argv[arg+1];};
-            if (argv[arg] == "-a"){choix_algo = argv[arg+1];};
-            if (argv[arg] == "-help"){help++};
-            if (argv[arg] == "-r"){showres++};
-            if (argv[arg] == "-w"){logres++};
-            if (argv[arg] == "-p"){showperf++};
-            if (argv[arg] == "-l"){logperf++};
+            if (strcmp(argv[arg], "-n") == 0 && arg+1 < argc) {nbr = atoi(argv[arg+1]);}
+            if (strcmp(argv[arg], "-a") == 0 && arg+1 < argc) {choix_algo = (char *)argv[arg+1];}
+            if (strcmp(argv[arg], "-help") == 0){help++;}
+            if (strcmp(argv[arg], "-r") == 0){showres++;}
+            if (strcmp(argv[arg], "-w") == 0){logres++;}
+            if (strcmp(argv[arg], "-p") == 0){showperf++;}
+            if (strcmp(argv[arg], "-l") == 0){logperf++;}
         }
-        FILE * f = fopen(argv[1], "r");
-        if (f == NULL) {
-            fprintf(stderr, "Erreur: impossible d'ouvrir le fichier '%s'\n", argv[1]);
-            return EXIT_FAILURE;
+
+        if (help != 0){usage((char *)argv[0]);}
+
+        for(int arg = 1; arg < argc; arg++){
+                if (strcmp(argv[arg], "-n") == 0 || strcmp(argv[arg], "-a") == 0) {
+                    arg++; // skip la valeur qui casse tout
+                    continue;
+                }
+                if (argv[arg][0] == '-') {continue;}
+
+                FILE * f = fopen(argv[arg], "r");
+                if (f == NULL) {
+                    fprintf(stderr, "Erreur: impossible d'ouvrir le fichier '%s'\n", argv[arg]); return EXIT_FAILURE;
+                }
+
+                if (strcmp(choix_algo, "algo1") == 0){
+                    fprintf(stdout, "Lecture du fichier '%s' avec algorithme par histogramme non-trier...\n", argv[arg]);
+                    FileReader(f, &occ, &infomem);
+                    fclose(f);
+                    if (showres != 0){TopNmot(&occ, nbr, &infomem);}
+                    if (logres != 0) {continue;}
+                    if (showperf != 0) {showPerfs(infomem);}
+                    if (logperf != 0) {continue;}
+                    FreeHistogramme(&occ, &infomem);
+                }else if (strcmp(choix_algo, "algo2") == 0) {
+                    fprintf(stdout, "Lecture du fichier '%s' avec algorithme par histogramme trier...\n", argv[arg]);
+                    FileReader(f, &occ, &infomem);
+                    fclose(f);
+                    if (showres != 0){TopNmot(&occ, nbr, &infomem);}
+                    if (logres != 0) {continue;}
+                    if (showperf != 0) {showPerfs(infomem);}
+                    if (logperf != 0) {continue;}
+                    FreeHistogramme(&occ, &infomem);
+                }else if (strcmp(choix_algo, "algo3") == 0) {
+                    fprintf(stdout, "Lecture du fichier '%s' avec algorithme par listes chainees...\n", argv[arg]);
+                    Liste lst = NULL;
+                    Algo_lst_chaine(f, &lst, &infomem);
+                    fclose(f);
+                }else{fprintf(stderr,"Mauvais algorithme entree... KABOOM\n"); return EXIT_FAILURE;}
         }
-        printf("Lecture du fichier '%s'...\n", argv[1]);
-        FileReader(f, &occ, &infomem);
-        fclose(f);
     }
-    // A mettre dans la partie pour utiliser l'algo de liste chaine
-    // FILE * f = fopen(argv[1], "r");
-    // if (f == NULL) {
-    //     fprintf(stderr, "Erreur: impossible d'ouvrir le fichier '%s'\n", argv[1]);
-    //     return EXIT_FAILURE;
-    // }
-    // printf("Lecture du fichier '%s'...\n", argv[1]);
-    // Liste lst = NULL;
-    // Algo_lst_chaine(f, &lst, &infomem);
-    // fclose(f);
 
-    FreeHistogramme(&occ, &infomem);
-
-    printf("\n=== Statistiques mémoire ===\n");
-    printf("Mémoire allouée: %zu bytes\n", infomem.cumul_alloc);
-    printf("Mémoire libérée: %zu bytes\n", infomem.cumul_desalloc);
-    printf("Pic d'allocation: %zu bytes\n", infomem.max_alloc);
+    // printf("\n=== Statistiques mémoire ===\n");
+    // printf("Mémoire allouée: %zu bytes\n", infomem.cumul_alloc);
+    // printf("Mémoire libérée: %zu bytes\n", infomem.cumul_desalloc);
+    // printf("Pic d'allocation: %zu bytes\n", infomem.max_alloc);
 
     
     return 0;

@@ -28,5 +28,6 @@ int recherche_mot(char* ligne, int index_ligne, char** mot, int *taille_buffer_m
 
 int Algo_lst_chaine(FILE* fichier, Cellule_mot** plst, InfoMem* infoMem);
 
+int Compte_mot(Cellule_mot** plst);
 
 #endif

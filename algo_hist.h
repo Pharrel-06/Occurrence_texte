@@ -8,30 +8,35 @@
 
 typedef struct {
     char **mots;
-    int *occurrences; 
+    int *occurrences;
     int nbrMot;
+    int taille_allouee;
 } histogramme;
 
 void InitHist(histogramme *h, InfoMem *i);
 
-void InitInfoMem(InfoMem *i);
-
 void ReadStrHist(histogramme h);
+
+void AfficherHistogramme(histogramme occ);
 
 int InHist(histogramme h, char *mot);
 
 int DivLine(char *line, int start, char *mot);
 
+void MaxSizePlus(histogramme *h, InfoMem *i);
+
+int HistWordCount(histogramme h);
+
 void FileReader(FILE * fichier, histogramme *h, InfoMem *i);
 
 void FreeHistogramme(histogramme *h, InfoMem *i);
 
-void MaxSizePlus(histogramme *h, InfoMem *i);
+void TopNmot(histogramme *h, int n, InfoMem *i);
 
-void sawp(histogramme* h, int i, int j);
+void swap(histogramme* h, int i, int j);
 
 int RechercheMax(histogramme* h, int debut);
 
-void TrieHistogramme(histogramme* h);
+void TrieHistogramme(histogramme* h, InfoMem *i);
 
 #endif
