@@ -84,3 +84,35 @@ void FreeHistogramme(histogramme *h, InfoMem *i) {
     myFree(h->occurrences, i, sizeof(int) * MAX_LENGTH);
     h->nbrMot = 0;
 }
+
+// Echange 2 mots et leurs occurence dans l'histogramme
+void sawp(histogramme* h, int i, int j) {
+    int tmp_occ = h->occurrences[i];
+    char* tmp_mot = h->mots[i];
+    h->occurrences[i] = h->occurrences[j];
+    h->mots[i] = h->mots[j];
+    h->occurrences[j] = tmp_occ;
+    h->mots[j] = tmp_mot;
+}
+
+// Trouve et renvoie l'indice de l'occurrence la plus grande dans la partie non triée du tableau
+int RechercheMax(histogramme* h, int debut) {
+    int index_max = debut;
+    for (int i = debut; i < h->nbrMot; i++) {
+        if (h->occurrences[i] > h->occurrences[index_max]) {
+            index_max = i;
+        }
+    }
+    return index_max;
+}
+
+// Trie l'histogramme par ordre décroissant
+void TrieHistogramme(histogramme* h) {
+    int index_max;
+    int current_index = 0;
+    while (current_index < h->nbrMot) {
+        index_max = RechercheMax(h, current_index);
+        sawp(h, current_index, index_max);
+        current_index++;
+    }
+}

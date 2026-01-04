@@ -26,4 +26,10 @@ void FileReader(FILE * fichier, histogramme *h, InfoMem *i);
 
 void FreeHistogramme(histogramme *h, InfoMem *i);
 
+void sawp(histogramme* h, int i, int j);
+
+int RechercheMax(histogramme* h, int debut);
+
+void TrieHistogramme(histogramme* h);
+
 #endif
