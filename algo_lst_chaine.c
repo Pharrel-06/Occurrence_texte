@@ -21,7 +21,6 @@ typedef struct cellule_mot {
 
 // Cree une cellule pour un nouveau mot
 Cellule_mot* Cree_Cellule_mot(char* mot, InfoMem* infoMem) {
-
     Cellule_mot* new_cell = (Cellule_mot*) myMalloc(sizeof(Cellule_mot), infoMem);
     if (!new_cell) {
         return NULL;
@@ -34,7 +33,6 @@ Cellule_mot* Cree_Cellule_mot(char* mot, InfoMem* infoMem) {
 
 // Supprime et renvoie la cellule 
 Cellule_mot* Supp_Cellule_mot(Cellule_mot** ppcell) {
-
     if (!(*ppcell)) {
         return NULL;
     }
@@ -45,7 +43,6 @@ Cellule_mot* Supp_Cellule_mot(Cellule_mot** ppcell) {
 
 // Vérifie si un mot est dans la liste, si oui il renvoie l'adresse de la cellule précédente pour le suprrimer
 Cellule_mot** Mot_in_liste(Cellule_mot** plst, char* mot) {
-
     // On parcours toute la liste 
     for (; *plst; plst = &((*plst)->suivant)) {
         // Si on retrouve le mot, on renvoie l'adresse de la cellule 
@@ -58,7 +55,6 @@ Cellule_mot** Mot_in_liste(Cellule_mot** plst, char* mot) {
 
 // Ajoute une nouvelle cellule au bonne endroit dans la liste
 void Add_Cellule_mot(Cellule_mot** plst, Cellule_mot* cell) {
-
     for (; *plst; plst = &((*plst)->suivant)) {
         if ((*plst)->nb_occ <= cell->nb_occ) {
             break;
@@ -70,7 +66,6 @@ void Add_Cellule_mot(Cellule_mot** plst, Cellule_mot* cell) {
 
 // Free toute une liste
 void Free_liste(Cellule_mot** plst, InfoMem* infoMem) {
-
     Cellule_mot* next_cell;
     for (; *plst; plst = &(next_cell)) {
         next_cell = (*plst)->suivant;
@@ -163,7 +158,7 @@ int Algo_lst_chaine(FILE* fichier, Cellule_mot** plst, InfoMem* infoMem) {
         return -1;
     }
 
-    // Tant que l'on a pas attaint la fin du fichier
+    // Tant que l'on a pas atteint la fin du fichier
     while (!feof(fichier)) {
         // On vérifie si la ligne à bien été lu
         char* ligne_lu = fgets(ligne, sizeof(char)*MAX_LENGTH, fichier);
@@ -218,7 +213,6 @@ int Compte_mot(Cellule_mot** plst) {
 
 // Ecrit les résultats de performance dans le fichier
 void Ecrit_resultats(FILE* fichier, Cellule_mot** plst, int nb_mot_choisi) {
-
     int nb_mot = 0;
     for (; *plst && nb_mot < nb_mot_choisi; plst = &((*plst)->suivant), nb_mot++) {
         fprintf(fichier, "%s %d\n", (*plst)->mot, (*plst)->nb_occ);
@@ -226,9 +220,8 @@ void Ecrit_resultats(FILE* fichier, Cellule_mot** plst, int nb_mot_choisi) {
 }
 
 void Ecrit_performances(FILE * fichier, InfoMem* infoMem, int nb_mot, time_t debut, time_t fin) {
-
     fprintf(fichier, "%d\n", nb_mot);
-    fprintf(fichier, "%lld\n", fin - debut);
+    fprintf(fichier, "%ld\n", fin - debut);
     fprintf(fichier, "%zu\n", infoMem->cumul_alloc);
     fprintf(fichier, "%zu\n", infoMem->cumul_desalloc);
     fprintf(fichier, "%zu\n", infoMem->max_alloc);

@@ -85,8 +85,14 @@ void FreeHistogramme(histogramme *h, InfoMem *i) {
     h->nbrMot = 0;
 }
 
+void MaxSizePlus(histogramme *h, InfoMem *i){
+    h->mots = (char **)myRealloc(h->mots, sizeof(char *) * (h->nbrMot*2), i, sizeof(char *) * h->nbrMot);
+    h->occurrences = (int *)myRealloc(h->occurrences, sizeof(int) * (h->nbrMot*2), i, sizeof(int) * h->nbrMot);
+}
+
+
 // Echange 2 mots et leurs occurence dans l'histogramme
-void sawp(histogramme* h, int i, int j) {
+void swap(histogramme* h, int i, int j) {
     int tmp_occ = h->occurrences[i];
     char* tmp_mot = h->mots[i];
     h->occurrences[i] = h->occurrences[j];
@@ -112,7 +118,7 @@ void TrieHistogramme(histogramme* h) {
     int current_index = 0;
     while (current_index < h->nbrMot) {
         index_max = RechercheMax(h, current_index);
-        sawp(h, current_index, index_max);
+        swap(h, current_index, index_max);
         current_index++;
     }
 }
