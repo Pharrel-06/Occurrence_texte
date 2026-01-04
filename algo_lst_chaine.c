@@ -3,18 +3,7 @@
 #include <string.h>
 #include <time.h>
 #include "gererMem.h"
-
-#define MAX_LENGTH 200
-
-// Algorithme qui utilise des listes chainée ordonnée pour compter le nombre d'occurence des mot du texte
-
-
-// Structure de la liste chainée
-typedef struct cellule_mot {
-    char* mot;
-    int nb_occ;
-    struct cellule_mot* suivant;
-} Cellule_mot, *Liste;
+#include "algo_lst_chaine.h"
 
 
 // Fonction de base pour la manipulation de liste chainée
@@ -86,17 +75,6 @@ void Affiche_liste_chaine(Cellule_mot** plst) {
 
 
 // Fonction de manipulation de fichier
-
-// Vérifie si un fichier peut être ouvert
-int peut_ouvrir_fichier(char * chemin) {
-
-    FILE * ouvert = fopen(chemin, "r");
-    if (ouvert == NULL) {
-        return 0;
-    }
-    fclose(ouvert);
-    return 1;
-}
 
 // Parcours une ligne du fichier et renvoie le prochain mot
 int recherche_mot(char* ligne, int index_ligne, char** mot, int *taille_buffer_mot, InfoMem* infoMem) {
@@ -191,9 +169,6 @@ int Algo_lst_chaine(FILE* fichier, Cellule_mot** plst, InfoMem* infoMem) {
                 }
                 Add_Cellule_mot(plst, new_cell);
             }
-
-            // printf("Nouvelle etat de la liste : ");
-            // Affiche_liste_chaine(plst);
         }
     }
     myFree(ligne, infoMem, sizeof(char)*MAX_LENGTH);
@@ -273,4 +248,3 @@ int main(void) {
     }
     return 0;
 }
-
