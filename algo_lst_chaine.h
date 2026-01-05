@@ -32,4 +32,8 @@ void Algo_lst_chaine(FILE* fichier, Cellule_mot** plst, InfoMem* infoMem);
 
 int Compte_mot(Cellule_mot** plst);
 
+void Ecrit_resultats(FILE* fichier, Cellule_mot** plst, int nb_mot_choisi);
+
+void Ecrit_performances(FILE * fichier, InfoMem* infoMem, int nb_mot);
+
 #endif

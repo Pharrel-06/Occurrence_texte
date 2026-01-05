@@ -74,7 +74,7 @@ void Affiche_liste_chaine(Cellule_mot** plst) {
 }
 
 void Affiche_n_liste_chaine(Cellule_mot** plst, int n) {
-    for (int i = 0; (*plst) && (i < n); (plst = &((*plst)->suivant)) && i++) {
+    for (int i = 0; (*plst) && (i < n); (plst = &((*plst)->suivant)), i++) {
         printf("%s (%d)-> ",(*plst)->mot, (*plst)->nb_occ);
     }
     printf("...\n");
@@ -190,7 +190,6 @@ int Compte_mot(Cellule_mot** plst) {
     return nb_mot;
 }
 
-// Ecrit les résultats de performance dans le fichier
 void Ecrit_resultats(FILE* fichier, Cellule_mot** plst, int nb_mot_choisi) {
     int nb_mot = 0;
     for (; *plst && nb_mot < nb_mot_choisi; plst = &((*plst)->suivant), nb_mot++) {
@@ -198,9 +197,9 @@ void Ecrit_resultats(FILE* fichier, Cellule_mot** plst, int nb_mot_choisi) {
     }
 }
 
-void Ecrit_performances(FILE * fichier, InfoMem* infoMem, int nb_mot, time_t debut, time_t fin) {
+void Ecrit_performances(FILE * fichier, InfoMem* infoMem, int nb_mot) {
     fprintf(fichier, "%d\n", nb_mot);
-    fprintf(fichier, "%ld\n", fin - debut);
+    fprintf(fichier, "%ld\n", infoMem->cumul_temps);
     fprintf(fichier, "%zu\n", infoMem->cumul_alloc);
     fprintf(fichier, "%zu\n", infoMem->cumul_desalloc);
     fprintf(fichier, "%zu\n", infoMem->max_alloc);
