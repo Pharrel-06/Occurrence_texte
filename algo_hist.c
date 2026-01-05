@@ -214,17 +214,3 @@ int Compte_mot_hist(histogramme h) {
     }
     return nb_mot;
 }
-
-void Ecrit_resultats_hist(FILE* fichier, histogramme h, int nb_mot_choisi) {
-    for (int i = 0; i < h.nbrMot && i < nb_mot_choisi; i++) {
-        fprintf(fichier, "%s %d\n", h.mots[i], h.occurrences[i]);
-    }
-} 
-
-void Ecrit_performances_hist(FILE * fichier, InfoMem * infmem, int nb_mot){
-    fprintf(fichier, "%d\n", nb_mot);
-    fprintf(fichier, "%ld\n", infmem->cumul_temps);
-    fprintf(fichier, "%zu\n", infmem->cumul_alloc);
-    fprintf(fichier, "%zu\n", infmem->cumul_desalloc);
-    fprintf(fichier, "%zu\n", infmem->max_alloc);
-}

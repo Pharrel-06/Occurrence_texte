@@ -106,10 +106,10 @@ int main(int argc, const char *argv[]) {
             InitHist(&occ, &infomem);
             FileReader(f, &occ, &infomem);
             if (showres) {TopNmot(&occ, nbr, &infomem);}
-            if (logres) {Ecrit_resultats_hist(fres, occ, nbr);}
+            if (logres) {continue;}
             FreeHistogramme(&occ, &infomem);
             if (showperf) {showPerfs(infomem);}
-            if (logperf) {Ecrit_performances_hist(fperf, &infomem, Compte_mot_hist(occ));}
+            if (logperf) {continue;}
 
         } else if (strcmp(choix_algo, "algo2") == 0) {
             histogramme occ;
@@ -117,10 +117,10 @@ int main(int argc, const char *argv[]) {
             FileReader(f, &occ, &infomem);
             TrieHistogramme(&occ, &infomem);
             if (showres) {AfficherHistogramme(occ, nbr);}
-            if (logres) {Ecrit_resultats_hist(fres, occ, nbr);}
+            if (logres) {continue;}
             FreeHistogramme(&occ, &infomem);
             if (showperf) {showPerfs(infomem);}
-            if (logperf) {Ecrit_performances_hist(fperf, &infomem, Compte_mot_hist(occ));}
+            if (logperf) {continue;}
 
         } else if (strcmp(choix_algo, "algo3") == 0) {
             Liste lst = NULL;
