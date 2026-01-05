@@ -12,6 +12,7 @@
 // Structure de la liste chainée
 typedef struct cellule_mot {
     char* mot;
+    size_t taille_mot;
     int nb_occ;
     struct cellule_mot* suivant;
 } Cellule_mot, *Liste;
@@ -27,6 +28,7 @@ Cellule_mot* Cree_Cellule_mot(char* mot, InfoMem* infoMem) {
         return NULL;
     }
     new_cell->mot = mot;
+    new_cell->taille_mot = strlen(mot) + 1;
     new_cell->nb_occ = 1;
     new_cell->suivant = NULL;
     return new_cell;
@@ -76,7 +78,7 @@ void Free_liste(Cellule_mot **plst, InfoMem *infoMem)
 
     while (courant) {
         suivant = courant->suivant;
-        myFree(courant->mot, infoMem, sizeof(char)*(strlen((*plst)->mot) + 1));
+        myFree(courant->mot, infoMem, courant->taille_mot);
         myFree(courant, infoMem, sizeof(Cellule_mot));
         courant = suivant;
     }
@@ -210,7 +212,7 @@ void Ecrit_resultats(FILE* fichier, Cellule_mot** plst, int nb_mot_choisi) {
 void Ecrit_performances(FILE * fichier, InfoMem* infoMem, int nb_mot, time_t debut, time_t fin) {
 
     fprintf(fichier, "%d\n", nb_mot);
-    fprintf(fichier, "%lld\n", fin - debut);
+    //fprintf(fichier, "%lld\n", fin - debut);
     fprintf(fichier, "%zu\n", infoMem->cumul_alloc);
     fprintf(fichier, "%zu\n", infoMem->cumul_desalloc);
     fprintf(fichier, "%zu\n", infoMem->max_alloc);
@@ -218,9 +220,9 @@ void Ecrit_performances(FILE * fichier, InfoMem* infoMem, int nb_mot, time_t deb
 
 int main(void) {
 
-    if (peut_ouvrir_fichier("test.txt")) {
+    if (peut_ouvrir_fichier("corpus_10k.txt")) {
 
-        FILE* fichier = fopen("test.txt", "r");
+        FILE* fichier = fopen("corpus_10k.txt", "r");
         Liste lst = NULL;
         InfoMem infoMem = {0, 0, 0};   // <-- initialiser les compteurs à 0
         InfoMem* pInfoMem = &infoMem;
@@ -231,8 +233,8 @@ int main(void) {
         printf("\nAppel de l'algo\n");
         Algo_lst_chaine(fichier, &lst, pInfoMem);
 
-        printf("\nEtat final de la liste :");
-        Affiche_liste_chaine(&lst);
+        //printf("\nEtat final de la liste :");
+        //Affiche_liste_chaine(&lst);
 
         printf("fin algo\n");
 
