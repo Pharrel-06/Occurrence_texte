@@ -47,6 +47,7 @@ Cellule_mot* Supp_Cellule_mot(Cellule_mot** ppcell) {
 
 // Vérifie si un mot est dans la liste, si oui il renvoie l'adresse de la cellule précédente pour le suprrimer
 Cellule_mot** Mot_in_liste(Cellule_mot** plst, char* mot) {
+    printf("Recherche du mot : %s\n", mot);
 
     // On parcours toute la liste 
     for (; *plst; plst = &((*plst)->suivant)) {
@@ -140,7 +141,7 @@ int Algo_lst_chaine(FILE* fichier, Cellule_mot** plst, InfoMem* infoMem) {
         return -1;
     }
 
-    char* buffer_mot = myMalloc(sizeof(char)*40, infoMem);
+    char* buffer_mot = myMalloc(sizeof(char)*42, infoMem);
     if (!buffer_mot) {
         printf("Problème allocation pour buffer_mot\n");
         myFree(ligne, infoMem, sizeof(char)*MAX_LENGTH);
@@ -156,7 +157,15 @@ int Algo_lst_chaine(FILE* fichier, Cellule_mot** plst, InfoMem* infoMem) {
         // Tant que l'on a pas réccupéré un mot, on parcours la ligne
         int index_ligne = 0;
         while((index_ligne = DivLine(ligne, index_ligne, buffer_mot)) != -1) {
-            Cellule_mot** pcell_supp = Mot_in_liste(plst, buffer_mot);
+            char* mot = (char*) myMalloc(sizeof(char)*(strlen(buffer_mot) + 1), infoMem);
+            if (!mot) {
+                    printf("Problème allocation pour mot\n");
+                    myFree(ligne, infoMem, sizeof(char)*MAX_LENGTH);
+                    myFree(buffer_mot, infoMem, sizeof(char)*42);
+                    return -1;
+            }
+            strcpy(mot, buffer_mot);
+            Cellule_mot** pcell_supp = Mot_in_liste(plst, mot);
             // Le mot est dans la liste
             if (pcell_supp) {
                 Cellule_mot* cell_supp = Supp_Cellule_mot(pcell_supp);
@@ -165,20 +174,20 @@ int Algo_lst_chaine(FILE* fichier, Cellule_mot** plst, InfoMem* infoMem) {
             }
             // Le mot n'est pas dans la liste
             else {
-                char* mot = (char*) myMalloc(sizeof(char)*(strlen(buffer_mot) + 1), infoMem);
-                if (!mot) {
-                    printf("Problème allocation pour mot\n");
-                    myFree(ligne, infoMem, sizeof(char)*MAX_LENGTH);
-                    myFree(buffer_mot, infoMem, sizeof(char)*40);
-                    return -1;
-                }
-                strcpy(mot, buffer_mot);
+                //char* mot = (char*) myMalloc(sizeof(char)*(strlen(buffer_mot) + 1), infoMem);
+                //if (!mot) {
+                //    printf("Problème allocation pour mot\n");
+                //    myFree(ligne, infoMem, sizeof(char)*MAX_LENGTH);
+                //    myFree(buffer_mot, infoMem, sizeof(char)*42);
+                //    return -1;
+                // }
+                //strcpy(mot, buffer_mot);
                 Cellule_mot* new_cell = Cree_Cellule_mot(mot, infoMem);
                 if (!new_cell) {
                     printf("Problème allocation pour cellule mot\n");
                     myFree(mot, infoMem, sizeof(char)*(strlen(mot) + 1));
                     myFree(ligne, infoMem, sizeof(char)*MAX_LENGTH);
-                    myFree(buffer_mot, infoMem, sizeof(char)*40);
+                    myFree(buffer_mot, infoMem, sizeof(char)*42);
                     return -1;
                 }
                 Add_Cellule_mot(plst, new_cell);
@@ -186,7 +195,7 @@ int Algo_lst_chaine(FILE* fichier, Cellule_mot** plst, InfoMem* infoMem) {
         }
     }
     myFree(ligne, infoMem, sizeof(char)*MAX_LENGTH);
-    myFree(buffer_mot, infoMem, sizeof(char)*40);
+    myFree(buffer_mot, infoMem, sizeof(char)*42);
     return 1;
 }
 
