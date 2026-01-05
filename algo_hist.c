@@ -136,38 +136,44 @@ void FreeHistogramme(histogramme *h, InfoMem *i) {
     h->taille_allouee = 0;
 }
 
-void TopNmot(histogramme *h, int n, InfoMem *i) {
-    i->temps_debut = time(NULL);
-    if (n <= 0 || n > h->nbrMot) return;
-    
-    int *indices = (int *)myMalloc(sizeof(int) * n, i);
-    int found = 0;
-    
+void TopNmot(histogramme *h, int n, InfoMem *inf) {
+    inf->temps_debut = time(NULL);
+
+    if (n <= 0 || n > h->nbrMot) {fprintf(stderr, "Paramètre n invalide\n"); return;}
+
+    int *indices = myMalloc(sizeof(int) * n, inf);
+    int size = 0;
     for (int i = 0; i < h->nbrMot; i++) {
-        int j = found;
-        while (j > 0 && h->occurrences[i] > h->occurrences[indices[j-1]]) {
-            indices[j] = indices[j-1];
-            j--;
+        if (size == n &&
+            h->occurrences[i] <= h->occurrences[indices[size - 1]]) {
+            continue;
         }
-        if (found < n) {
-            indices[j] = i;
-            found++;
-        } else if (h->occurrences[i] > h->occurrences[indices[n-1]]) {
-            indices[j] = i;
+
+        int pos = size;
+        if (pos > n - 1) {pos = n - 1;}
+
+        while (pos > 0 && h->occurrences[i] > h->occurrences[indices[pos - 1]]) {
+            indices[pos] = indices[pos - 1]; pos--;
         }
+        indices[pos] = i;
+        if (size < n) {size++;}
     }
-    
+
     printf("\n=== Résultats ====\n");
-    printf("=== Top %d mots ===\n", found);
-    for (int i = 0; i < found; i++) {
+    printf("=== Top %d mots ===\n", size);
+
+    for (int i = 0; i < size; i++) {
         printf("%s : %d\n", h->mots[indices[i]], h->occurrences[indices[i]]);
     }
-    
-    myFree(indices, i, sizeof(int) * n);
-    i->temps_fin = time(NULL);
-    i->cumul_temps += i->temps_fin - i->temps_debut;
-    i->temps_debut = 0; i->temps_fin = 0;
+
+    myFree(indices, inf, sizeof(int) * n);
+
+    inf->temps_fin = time(NULL);
+    inf->cumul_temps += inf->temps_fin - inf->temps_debut;
+    inf->temps_debut = 0;
+    inf->temps_fin = 0;
 }
+
 
 // Echange 2 mots et leurs occurence dans l'histogramme
 void swap(histogramme* h, int i, int j) {

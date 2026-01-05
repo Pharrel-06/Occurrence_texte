@@ -184,7 +184,7 @@ void Ecrit_resultats(FILE* fichier, Cellule_mot** plst, int nb_mot_choisi) {
 
 void Ecrit_performances(FILE * fichier, InfoMem* infoMem, int nb_mot) {
     fprintf(fichier, "%d\n", nb_mot);
-    fprintf(fichier, "%lld\n", infoMem->cumul_temps);
+    fprintf(fichier, "%ld\n", infoMem->cumul_temps);
     fprintf(fichier, "%zu\n", infoMem->cumul_alloc);
     fprintf(fichier, "%zu\n", infoMem->cumul_desalloc);
     fprintf(fichier, "%zu\n", infoMem->max_alloc);
