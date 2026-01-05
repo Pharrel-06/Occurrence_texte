@@ -8,6 +8,7 @@
 
 typedef struct cellule_mot {
     char* mot;
+    size_t taille_mot;
     int nb_occ;
     struct cellule_mot* suivant;
 } Cellule_mot, *Liste;
@@ -26,7 +27,7 @@ void Affiche_liste_chaine(Cellule_mot** plst);
 
 void Affiche_n_liste_chaine(Cellule_mot** plst, int n);
 
-int recherche_mot(char* ligne, int index_ligne, char** mot, int *taille_buffer_mot, InfoMem* infoMem);
+int DivLine2(char *line, int start, char *mot);
 
 void Algo_lst_chaine(FILE* fichier, Cellule_mot** plst, InfoMem* infoMem);
 

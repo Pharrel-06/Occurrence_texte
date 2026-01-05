@@ -15,6 +15,7 @@ Cellule_mot* Cree_Cellule_mot(char* mot, InfoMem* infoMem) {
         return NULL;
     }
     new_cell->mot = mot;
+    new_cell->taille_mot = strlen(mot) + 1;
     new_cell->nb_occ = 1;
     new_cell->suivant = NULL;
     return new_cell;
@@ -55,13 +56,16 @@ void Add_Cellule_mot(Cellule_mot** plst, Cellule_mot* cell) {
 
 // Free toute une liste
 void Free_liste(Cellule_mot** plst, InfoMem* infoMem) {
-    Cellule_mot* next_cell;
-    for (; *plst; plst = &(next_cell)) {
-        next_cell = (*plst)->suivant;
-        myFree((*plst)->mot, infoMem, sizeof(char)*strlen((*plst)->mot));
-        myFree(*plst, infoMem, sizeof(Cellule_mot));
-        *plst = NULL;
+    Cellule_mot *courant = *plst;
+    Cellule_mot *suivant;
+
+    while (courant) {
+        suivant = courant->suivant;
+        myFree(courant->mot, infoMem, courant->taille_mot);
+        myFree(courant, infoMem, sizeof(Cellule_mot));
+        courant = suivant;
     }
+    *plst = NULL;
 }
 
 // Affiche tout les mot de la liste chainée
@@ -83,44 +87,23 @@ void Affiche_n_liste_chaine(Cellule_mot** plst, int n) {
 // Fonction de manipulation de fichier
 
 // Parcours une ligne du fichier et renvoie le prochain mot
-int recherche_mot(char* ligne, int index_ligne, char** mot, int *taille_buffer_mot, InfoMem* infoMem) {
-
-    // Parcour jusqu'à trouver une lettre
-    while (ligne[index_ligne] && (ligne[index_ligne] == ' ' || ligne[index_ligne] == '\t' || ligne[index_ligne] == '\n' || ligne[index_ligne] == ',' || ligne[index_ligne] == '.')) {
-        index_ligne++;
+int DivLine2(char *line, int start, char *mot) {
+    int i = start;
+    while (line[i] && (line[i] == ' ' || line[i] == '\t' || line[i] == '\n')) {
+        i++;
     }
 
-    // Parcours du mot
-    int index_mot = 0;
-    while (ligne[index_ligne] && (ligne[index_ligne] != ' ' && ligne[index_ligne] != '\t' && ligne[index_ligne] != '\n' && ligne[index_ligne] != ',' && ligne[index_ligne] != '.')) {
-        // si il n'y a plus de place dans le buffer du mot, on l'agrandi
-        if (index_mot + 1 >= (*taille_buffer_mot)) {
-            char* tmp = (char*) myRealloc(*mot, sizeof(char)*((*taille_buffer_mot)*2), infoMem, sizeof(char)*(*taille_buffer_mot));
-            if (!tmp) {
-                return -1;
-            }
-            *mot = tmp;
-            *taille_buffer_mot *= 2;
+    int j = 0;
+    while (line[i] && line[i] != ' ' && line[i] != '\t' && line[i] != '\n') {
+        if (j < 41) {
+            mot[j++] = line[i];
         }
-        // *mot car mot est passé par pointeur de pointeur
-        (*mot)[index_mot] = ligne[index_ligne];
-        index_ligne++;
-        index_mot++;
+        i++;
     }
-    // si il n'y a plus de place dans le buffer du mot, on l'agrandi
-    if (index_mot + 1 >= (*taille_buffer_mot)) {
-        char* tmp = (char*) myRealloc(*mot, sizeof(char)*((*taille_buffer_mot)*2), infoMem, sizeof(char)*(*taille_buffer_mot));
-        if (!tmp) {
-            return -1;
-        }
-        *mot = tmp;
-        *taille_buffer_mot *= 2;
-    }
-    // Ajout du crarctère null pour les chaines de caractères
-    (*mot)[index_mot] = '\0';
-    if (index_mot>0) {
-        return index_ligne;
-    }
+    mot[j] = '\0';
+
+    if (j > 41) {return i;}
+    if (j > 0) {return i;}
     return -1;
 }
 
@@ -130,51 +113,53 @@ void Algo_lst_chaine(FILE* fichier, Cellule_mot** plst, InfoMem* infoMem) {
     // Création du buffer pour les lignes
     char* ligne = (char*) myMalloc(sizeof(char)*MAX_LENGTH, infoMem);
     if (!ligne) {
-        fprintf(stderr, "Problème allocation pour mot\n");
+        fprintf(stderr, "Problème allocation pour ligne\n");
     }
 
-    // Création du buffer pour les mots
-    int taille_buffer_mot = 10;
-    char* buffer_mot = (char*) myMalloc(sizeof(char)*taille_buffer_mot, infoMem);
+    char* buffer_mot = myMalloc(sizeof(char)*42, infoMem);
     if (!buffer_mot) {
-        fprintf(stderr, "Problème allocation pour mot\n"); 
+        fprintf(stderr, "Problème allocation pour buffer_mot\n");
+        myFree(ligne, infoMem, sizeof(char)*MAX_LENGTH);
     }
 
     // Tant que l'on a pas atteint la fin du fichier
-    while (!feof(fichier)) {
-        // On vérifie si la ligne à bien été lu
-        char* ligne_lu = fgets(ligne, sizeof(char)*MAX_LENGTH, fichier);
-        if (!ligne_lu) {
+    while (fgets(ligne, MAX_LENGTH, fichier) != NULL) {
+        if (ferror(fichier)) {
+            fprintf(stderr, "Reading error\n");
             break;
         }
-
         // Tant que l'on a pas réccupéré un mot, on parcours la ligne
         int index_ligne = 0;
-        while((index_ligne = recherche_mot(ligne, index_ligne, &buffer_mot, &taille_buffer_mot, infoMem)) != -1) {
-            // Copie du mot autre part pour ne pas le perdre
-            char* mot = (char*) myMalloc(sizeof(char)*(strlen(buffer_mot) + 1), infoMem);
-            strcpy(mot, buffer_mot);
-            Cellule_mot** pcell_supp = Mot_in_liste(plst, mot);
+        while((index_ligne = DivLine2(ligne, index_ligne, buffer_mot)) != -1) {
+            Cellule_mot** pcell_supp = Mot_in_liste(plst, buffer_mot);
             // Le mot est dans la liste
             if (pcell_supp) {
-                // Une autre copie du mot existe déjà, on libère l'espace de la copie
-                myFree(mot, infoMem, sizeof(char)*strlen(mot));
                 Cellule_mot* cell_supp = Supp_Cellule_mot(pcell_supp);
                 cell_supp->nb_occ ++;
                 Add_Cellule_mot(plst, cell_supp);
             }
             // Le mot n'est pas dans la liste
             else {
+                char* mot = (char*) myMalloc(sizeof(char)*(strlen(buffer_mot) + 1), infoMem);
+                if (!mot) {
+                    fprintf(stderr, "Problème allocation pour mot\n");
+                    myFree(ligne, infoMem, sizeof(char)*MAX_LENGTH);
+                    myFree(buffer_mot, infoMem, sizeof(char)*42);
+                }
+                strcpy(mot, buffer_mot);
                 Cellule_mot* new_cell = Cree_Cellule_mot(mot, infoMem);
                 if (!new_cell) {
                     fprintf(stderr, "Problème allocation pour cellule mot\n");
+                    myFree(mot, infoMem, sizeof(char)*(strlen(mot) + 1));
+                    myFree(ligne, infoMem, sizeof(char)*MAX_LENGTH);
+                    myFree(buffer_mot, infoMem, sizeof(char)*42);
                 }
                 Add_Cellule_mot(plst, new_cell);
             }
         }
     }
     myFree(ligne, infoMem, sizeof(char)*MAX_LENGTH);
-    myFree(buffer_mot, infoMem, sizeof(char)*taille_buffer_mot);
+    myFree(buffer_mot, infoMem, sizeof(char)*42);
     infoMem->temps_fin = time(NULL);
     infoMem->cumul_temps += infoMem->temps_fin - infoMem->temps_debut;
     infoMem->temps_debut = 0; infoMem->temps_fin = 0;
@@ -199,7 +184,7 @@ void Ecrit_resultats(FILE* fichier, Cellule_mot** plst, int nb_mot_choisi) {
 
 void Ecrit_performances(FILE * fichier, InfoMem* infoMem, int nb_mot) {
     fprintf(fichier, "%d\n", nb_mot);
-    fprintf(fichier, "%ld\n", infoMem->cumul_temps);
+    fprintf(fichier, "%lld\n", infoMem->cumul_temps);
     fprintf(fichier, "%zu\n", infoMem->cumul_alloc);
     fprintf(fichier, "%zu\n", infoMem->cumul_desalloc);
     fprintf(fichier, "%zu\n", infoMem->max_alloc);

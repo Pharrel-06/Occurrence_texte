@@ -47,7 +47,6 @@ Cellule_mot* Supp_Cellule_mot(Cellule_mot** ppcell) {
 
 // Vérifie si un mot est dans la liste, si oui il renvoie l'adresse de la cellule précédente pour le suprrimer
 Cellule_mot** Mot_in_liste(Cellule_mot** plst, char* mot) {
-    printf("Recherche du mot : %s\n", mot);
 
     // On parcours toute la liste 
     for (; *plst; plst = &((*plst)->suivant)) {
@@ -132,20 +131,18 @@ int DivLine(char *line, int start, char *mot) {
 }
 
 // Algo entier avec les listes chainées
-int Algo_lst_chaine(FILE* fichier, Cellule_mot** plst, InfoMem* infoMem) {
-
+void Algo_lst_chaine(FILE* fichier, Cellule_mot** plst, InfoMem* infoMem) {
+    infoMem->temps_debut = time(NULL);
     // Création du buffer pour les lignes
     char* ligne = (char*) myMalloc(sizeof(char)*MAX_LENGTH, infoMem);
     if (!ligne) {
-        printf("Problème allocation pour ligne\n");
-        return -1;
+        fprintf(stderr, "Problème allocation pour ligne\n");
     }
 
     char* buffer_mot = myMalloc(sizeof(char)*42, infoMem);
     if (!buffer_mot) {
-        printf("Problème allocation pour buffer_mot\n");
+        fprintf(stderr, "Problème allocation pour buffer_mot\n");
         myFree(ligne, infoMem, sizeof(char)*MAX_LENGTH);
-        return -1;
     }
 
     // Tant que l'on a pas atteint la fin du fichier
@@ -157,15 +154,7 @@ int Algo_lst_chaine(FILE* fichier, Cellule_mot** plst, InfoMem* infoMem) {
         // Tant que l'on a pas réccupéré un mot, on parcours la ligne
         int index_ligne = 0;
         while((index_ligne = DivLine(ligne, index_ligne, buffer_mot)) != -1) {
-            char* mot = (char*) myMalloc(sizeof(char)*(strlen(buffer_mot) + 1), infoMem);
-            if (!mot) {
-                    printf("Problème allocation pour mot\n");
-                    myFree(ligne, infoMem, sizeof(char)*MAX_LENGTH);
-                    myFree(buffer_mot, infoMem, sizeof(char)*42);
-                    return -1;
-            }
-            strcpy(mot, buffer_mot);
-            Cellule_mot** pcell_supp = Mot_in_liste(plst, mot);
+            Cellule_mot** pcell_supp = Mot_in_liste(plst, buffer_mot);
             // Le mot est dans la liste
             if (pcell_supp) {
                 Cellule_mot* cell_supp = Supp_Cellule_mot(pcell_supp);
@@ -174,21 +163,19 @@ int Algo_lst_chaine(FILE* fichier, Cellule_mot** plst, InfoMem* infoMem) {
             }
             // Le mot n'est pas dans la liste
             else {
-                //char* mot = (char*) myMalloc(sizeof(char)*(strlen(buffer_mot) + 1), infoMem);
-                //if (!mot) {
-                //    printf("Problème allocation pour mot\n");
-                //    myFree(ligne, infoMem, sizeof(char)*MAX_LENGTH);
-                //    myFree(buffer_mot, infoMem, sizeof(char)*42);
-                //    return -1;
-                // }
-                //strcpy(mot, buffer_mot);
+                char* mot = (char*) myMalloc(sizeof(char)*(strlen(buffer_mot) + 1), infoMem);
+                if (!mot) {
+                    fprintf(stderr, "Problème allocation pour mot\n");
+                    myFree(ligne, infoMem, sizeof(char)*MAX_LENGTH);
+                    myFree(buffer_mot, infoMem, sizeof(char)*42);
+                }
+                strcpy(mot, buffer_mot);
                 Cellule_mot* new_cell = Cree_Cellule_mot(mot, infoMem);
                 if (!new_cell) {
-                    printf("Problème allocation pour cellule mot\n");
+                    fprintf(stderr, "Problème allocation pour cellule mot\n");
                     myFree(mot, infoMem, sizeof(char)*(strlen(mot) + 1));
                     myFree(ligne, infoMem, sizeof(char)*MAX_LENGTH);
                     myFree(buffer_mot, infoMem, sizeof(char)*42);
-                    return -1;
                 }
                 Add_Cellule_mot(plst, new_cell);
             }
@@ -196,7 +183,9 @@ int Algo_lst_chaine(FILE* fichier, Cellule_mot** plst, InfoMem* infoMem) {
     }
     myFree(ligne, infoMem, sizeof(char)*MAX_LENGTH);
     myFree(buffer_mot, infoMem, sizeof(char)*42);
-    return 1;
+    infoMem->temps_fin = time(NULL);
+    infoMem->cumul_temps += infoMem->temps_fin - infoMem->temps_debut;
+    infoMem->temps_debut = 0; infoMem->temps_fin = 0;
 }
 
 // Compte le nombre de mot dans le fichier avec la liste

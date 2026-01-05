@@ -41,12 +41,12 @@ void showPerfs(InfoMem i) {
 
 int main(int argc, const char *argv[])
 {
-    histogramme occ;
     InfoMem infomem;
     InitInfoMem(&infomem);
-    InitHist(&occ, &infomem);
 
     if (argc < 2) {
+        histogramme occ;
+        InitHist(&occ, &infomem);
         fprintf(stdout, "Lecture depuis l'entree standard...\n");
         FileReader(stdin, &occ, &infomem);
         FreeHistogramme(&occ, &infomem);
@@ -103,6 +103,8 @@ int main(int argc, const char *argv[])
         }
 
         if (strcmp(choix_algo, "algo1") == 0) {
+            histogramme occ;
+            InitHist(&occ, &infomem);
             FileReader(f, &occ, &infomem);
             if (showres) TopNmot(&occ, nbr, &infomem);
             if (logres) Ecrit_resultats_hist(fres, occ, nbr);
@@ -111,6 +113,8 @@ int main(int argc, const char *argv[])
             if (logperf) Ecrit_performances_hist(fperf, &infomem, Compte_mot_hist(occ));
 
         } else if (strcmp(choix_algo, "algo2") == 0) {
+            histogramme occ;
+            InitHist(&occ, &infomem);
             FileReader(f, &occ, &infomem);
             TrieHistogramme(&occ, &infomem);
             if (showres) AfficherHistogramme(occ, nbr);
