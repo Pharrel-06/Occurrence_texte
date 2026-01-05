@@ -175,14 +175,16 @@ int Compte_mot(Cellule_mot** plst) {
     return nb_mot;
 }
 
-void Ecrit_resultats(FILE* fichier, Cellule_mot** plst, int nb_mot_choisi) {
+void Ecrit_resultats_lst(FILE* fichier, Cellule_mot** plst, int nb_mot_choisi, char* algo) {
     int nb_mot = 0;
+    fprintf(fichier, "%s\n", algo);
     for (; *plst && nb_mot < nb_mot_choisi; plst = &((*plst)->suivant), nb_mot++) {
         fprintf(fichier, "%s %d\n", (*plst)->mot, (*plst)->nb_occ);
     }
 }
 
-void Ecrit_performances(FILE * fichier, InfoMem* infoMem, int nb_mot) {
+void Ecrit_performances_lst(FILE * fichier, InfoMem* infoMem, int nb_mot, char* algo) {
+    fprintf(fichier, "%s\n", algo);
     fprintf(fichier, "%d\n", nb_mot);
     fprintf(fichier, "%ld\n", infoMem->cumul_temps);
     fprintf(fichier, "%zu\n", infoMem->cumul_alloc);

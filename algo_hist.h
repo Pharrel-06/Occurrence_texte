@@ -41,4 +41,9 @@ void TrieHistogramme(histogramme* h, InfoMem *i);
 
 int Compte_mot_hist(histogramme h);
 
+void Ecrit_resultats_hist(FILE* fichier, histogramme* h, int nb_mot, char* algo);
+
+void Ecrit_perf_hist(FILE* fichier, InfoMem* infoMem, int nb_mot, char* algo);
+
+
 #endif

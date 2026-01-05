@@ -106,10 +106,10 @@ int main(int argc, const char *argv[]) {
             InitHist(&occ, &infomem);
             FileReader(f, &occ, &infomem);
             if (showres) {TopNmot(&occ, nbr, &infomem);}
-            if (logres) {continue;}
+            if (logres) {TrieHistogramme(&occ, &infomem); Ecrit_resultats_hist(fres, &occ, nbr, "algo1");}
             FreeHistogramme(&occ, &infomem);
             if (showperf) {showPerfs(infomem);}
-            if (logperf) {continue;}
+            if (logperf) {Ecrit_perf_hist(fperf, &infomem, Compte_mot_hist(occ), "algo1");}
 
         } else if (strcmp(choix_algo, "algo2") == 0) {
             histogramme occ;
@@ -117,19 +117,19 @@ int main(int argc, const char *argv[]) {
             FileReader(f, &occ, &infomem);
             TrieHistogramme(&occ, &infomem);
             if (showres) {AfficherHistogramme(occ, nbr);}
-            if (logres) {continue;}
+            if (logres) {Ecrit_resultats_hist(fres, &occ, nbr, "algo2");}
             FreeHistogramme(&occ, &infomem);
             if (showperf) {showPerfs(infomem);}
-            if (logperf) {continue;}
+            if (logperf) {Ecrit_perf_hist(fperf, &infomem, Compte_mot_hist(occ), "algo2");;}
 
         } else if (strcmp(choix_algo, "algo3") == 0) {
             Liste lst = NULL;
             Algo_lst_chaine(f, &lst, &infomem);
             if (showres) {Affiche_n_liste_chaine(&lst, nbr);}
-            if (logres) {Ecrit_resultats(fres, &lst, nbr);}
+            if (logres) {Ecrit_resultats_lst(fres, &lst, nbr, "algo3");}
             Free_liste(&lst, &infomem);
             if (showperf) {showPerfs(infomem);}
-            if (logperf) {Ecrit_performances(fperf, &infomem, Compte_mot(&lst));}
+            if (logperf) {Ecrit_performances_lst(fperf, &infomem, Compte_mot(&lst), "algo3");}
 
         } else {
             fprintf(stderr, "Algorithme inconnu\n");

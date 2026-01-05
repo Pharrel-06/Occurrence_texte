@@ -220,3 +220,19 @@ int Compte_mot_hist(histogramme h) {
     }
     return nb_mot;
 }
+
+void Ecrit_resultats_hist(FILE* fichier, histogramme* h, int nb_mot, char* algo) {
+    fprintf(fichier, "%s\n", algo);
+    for (int i = 0; i < nb_mot; i++) {
+        fprintf(fichier, "%s %d\n", h->mots[i], h->occurrences[i]);
+    }
+}
+
+void Ecrit_perf_hist(FILE* fichier, InfoMem* infoMem, int nb_mot, char* algo) {
+    fprintf(fichier, "%s\n", algo);
+    fprintf(fichier, "%d\n", nb_mot);
+    fprintf(fichier, "%ld\n", infoMem->cumul_temps);
+    fprintf(fichier, "%zu\n", infoMem->cumul_alloc);
+    fprintf(fichier, "%zu\n", infoMem->cumul_desalloc);
+    fprintf(fichier, "%zu\n", infoMem->max_alloc);
+}
