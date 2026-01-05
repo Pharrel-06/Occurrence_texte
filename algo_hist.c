@@ -34,23 +34,34 @@ int InHist(histogramme h, char *mot){
     return -1;
 }
 
+int isSeparator(char c)
+{
+    return (
+        c == ' '  || c == '\t' || c == '\n' ||
+        c == ','  || c == ';'  ||
+        c == '('  || c == ')'  ||
+        c == '{'  || c == '}'  ||
+        c == '['  || c == ']'  ||
+        c == ':'  || c == '?'  ||
+        c == '!'  || c == '.'
+    );
+}
+
 int DivLine(char *line, int start, char *mot) {
     int i = start;
-    while (line[i] && (line[i] == ' ' || line[i] == '\t' || line[i] == '\n')) {
+    while (line[i] && isSeparator(line[i])){
         i++;
     }
 
     int j = 0;
-    while (line[i] && line[i] != ' ' && line[i] != '\t' && line[i] != '\n') {
-        if (j < 41) {
+    while (line[i] && !isSeparator(line[i])){
+        if (j < 41)
             mot[j++] = line[i];
-        }
         i++;
     }
     mot[j] = '\0';
 
-    if (j > 41) {return i;}
-    if (j > 0) {return i;}
+    if (j > 0){return i;}
     return -1;
 }
 
@@ -107,11 +118,20 @@ void FileReader(FILE * fichier, histogramme *h, InfoMem *i) {
 }
 
 void FreeHistogramme(histogramme *h, InfoMem *i) {
-    for (int j = 0; j < h->nbrMot; j++) {
-        myFree(h->mots[j], i, strlen(h->mots[j]) + 1);
+    if (h->mots != NULL) {
+        for (int j = 0; j < h->nbrMot; j++) {
+            if (h->mots[j] != NULL) {
+                myFree(h->mots[j], i, strlen(h->mots[j]) + 1);
+                h->mots[j] = NULL;
+            }
+        }
+        myFree(h->mots, i, sizeof(char *) * h->taille_allouee);
+        h->mots = NULL;
     }
-    myFree(h->mots, i, sizeof(char *) * h->taille_allouee);
-    myFree(h->occurrences, i, sizeof(int) * h->taille_allouee);
+    if (h->occurrences != NULL) {
+        myFree(h->occurrences, i, sizeof(int) * h->taille_allouee);
+        h->occurrences = NULL;
+    }
     h->nbrMot = 0;
     h->taille_allouee = 0;
 }
@@ -185,4 +205,26 @@ void TrieHistogramme(histogramme* h, InfoMem *i) {
     i->temps_fin = time(NULL);
     i->cumul_temps += i->temps_fin - i->temps_debut;
     i->temps_debut = 0; i->temps_fin = 0;
+}
+
+int Compte_mot_hist(histogramme h) {
+    int nb_mot = 0;
+    for(int i = 0; i < h.nbrMot; i++) {
+        nb_mot += h.occurrences[i];
+    }
+    return nb_mot;
+}
+
+void Ecrit_resultats_hist(FILE* fichier, histogramme h, int nb_mot_choisi) {
+    for (int i = 0; i < h.nbrMot && i < nb_mot_choisi; i++) {
+        fprintf(fichier, "%s %d\n", h.mots[i], h.occurrences[i]);
+    }
+} 
+
+void Ecrit_performances_hist(FILE * fichier, InfoMem * infmem, int nb_mot){
+    fprintf(fichier, "%d\n", nb_mot);
+    fprintf(fichier, "%ld\n", infmem->cumul_temps);
+    fprintf(fichier, "%zu\n", infmem->cumul_alloc);
+    fprintf(fichier, "%zu\n", infmem->cumul_desalloc);
+    fprintf(fichier, "%zu\n", infmem->max_alloc);
 }
