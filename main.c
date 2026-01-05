@@ -39,8 +39,7 @@ void showPerfs(InfoMem i) {
     fprintf(stdout, "Pic d'allocation: %zu bytes (%.2f Mo)\n", i.max_alloc, i.max_alloc / (1024.0 * 1024.0));
 }
 
-int main(int argc, const char *argv[])
-{
+int main(int argc, const char *argv[]) {
     InfoMem infomem;
     InitInfoMem(&infomem);
 
@@ -78,12 +77,12 @@ int main(int argc, const char *argv[])
 
     if (logres) {
         fres = fopen(FileRes, "w");
-        if (!fres) { perror("Erreur fichier resultats"); return EXIT_FAILURE; }
+        if (!fres) {perror("Erreur fichier resultats"); return EXIT_FAILURE;}
     }
 
     if (logperf) {
         fperf = fopen(FilePerf, "w");
-        if (!fperf) { perror("Erreur fichier performances"); return EXIT_FAILURE; }
+        if (!fperf) {perror("Erreur fichier performances"); return EXIT_FAILURE;}
     }
 
     for (int arg = 1; arg < argc; arg++) {
@@ -106,31 +105,31 @@ int main(int argc, const char *argv[])
             histogramme occ;
             InitHist(&occ, &infomem);
             FileReader(f, &occ, &infomem);
-            if (showres) TopNmot(&occ, nbr, &infomem);
-            if (logres) Ecrit_resultats_hist(fres, occ, nbr);
+            if (showres) {TopNmot(&occ, nbr, &infomem);}
+            if (logres) {Ecrit_resultats_hist(fres, occ, nbr);}
             FreeHistogramme(&occ, &infomem);
-            if (showperf) showPerfs(infomem);
-            if (logperf) Ecrit_performances_hist(fperf, &infomem, Compte_mot_hist(occ));
+            if (showperf) {showPerfs(infomem);}
+            if (logperf) {Ecrit_performances_hist(fperf, &infomem, Compte_mot_hist(occ));}
 
         } else if (strcmp(choix_algo, "algo2") == 0) {
             histogramme occ;
             InitHist(&occ, &infomem);
             FileReader(f, &occ, &infomem);
             TrieHistogramme(&occ, &infomem);
-            if (showres) AfficherHistogramme(occ, nbr);
-            if (logres) Ecrit_resultats_hist(fres, occ, nbr);
+            if (showres) {AfficherHistogramme(occ, nbr);}
+            if (logres) {Ecrit_resultats_hist(fres, occ, nbr);}
             FreeHistogramme(&occ, &infomem);
-            if (showperf) showPerfs(infomem);
-            if (logperf) Ecrit_performances_hist(fperf, &infomem, Compte_mot_hist(occ));
+            if (showperf) {showPerfs(infomem);}
+            if (logperf) {Ecrit_performances_hist(fperf, &infomem, Compte_mot_hist(occ));}
 
         } else if (strcmp(choix_algo, "algo3") == 0) {
             Liste lst = NULL;
             Algo_lst_chaine(f, &lst, &infomem);
-            if (showres) Affiche_n_liste_chaine(&lst, nbr);
-            if (logres) Ecrit_resultats(fres, &lst, nbr);
+            if (showres) {Affiche_n_liste_chaine(&lst, nbr);}
+            if (logres) {Ecrit_resultats(fres, &lst, nbr);}
             Free_liste(&lst, &infomem);
-            if (showperf) showPerfs(infomem);
-            if (logperf) Ecrit_performances(fperf, &infomem, Compte_mot(&lst));
+            if (showperf) {showPerfs(infomem);}
+            if (logperf) {Ecrit_performances(fperf, &infomem, Compte_mot(&lst));}
 
         } else {
             fprintf(stderr, "Algorithme inconnu\n");
