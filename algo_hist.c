@@ -18,9 +18,9 @@ void ReadStrHist(histogramme h){
     }
 }
 
-void AfficherHistogramme(histogramme occ) {
+void AfficherHistogramme(histogramme occ, int n) {
     printf("\n=== Résultats ===\n");
-    for(int i = 0; i < occ.nbrMot; i++){
+    for(int i = 0; i < n && i < occ.nbrMot ; i++){
         printf("%s : %d\n", occ.mots[i], occ.occurrences[i]);
     }
 }

@@ -24,9 +24,11 @@ void Free_liste(Cellule_mot** plst, InfoMem* infoMem);
 
 void Affiche_liste_chaine(Cellule_mot** plst);
 
+void Affiche_n_liste_chaine(Cellule_mot** plst, int n);
+
 int recherche_mot(char* ligne, int index_ligne, char** mot, int *taille_buffer_mot, InfoMem* infoMem);
 
-int Algo_lst_chaine(FILE* fichier, Cellule_mot** plst, InfoMem* infoMem);
+void Algo_lst_chaine(FILE* fichier, Cellule_mot** plst, InfoMem* infoMem);
 
 int Compte_mot(Cellule_mot** plst);
 

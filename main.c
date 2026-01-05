@@ -33,10 +33,10 @@ void usage(char * fichier) {
 
 void showPerfs(InfoMem i) {
     fprintf(stdout, "\n=== Statistiques mémoire ===\n");
-    fprintf(stdout, "Temps d'execution: %ld\n", i.cumul_temps);
-    fprintf(stdout, "Mémoire allouée: %zu\n", i.cumul_alloc);
-    fprintf(stdout, "Mémoire libérée: %zu\n", i.cumul_desalloc);
-    fprintf(stdout, "Pic d'allocation: %zu\n", i.max_alloc);
+    (i.cumul_temps != 0) ? fprintf(stdout, "Temps d'execution: %ld secondes\n", i.cumul_temps) : fprintf(stdout, "Temps d'execution instantanee\n");
+    fprintf(stdout, "Mémoire allouée: %zu bytes (%.2f Mo)\n", i.cumul_alloc, i.cumul_alloc / (1024.0 * 1024.0));
+    fprintf(stdout, "Mémoire libérée: %zu bytes (%.2f Mo)\n", i.cumul_desalloc, i.cumul_desalloc / (1024.0 * 1024.0));
+    fprintf(stdout, "Pic d'allocation: %zu bytes (%.2f Mo)\n", i.max_alloc, i.max_alloc / (1024.0 * 1024.0));
 }
 
 int main(int argc, const char * argv[]) {
@@ -88,8 +88,9 @@ int main(int argc, const char * argv[]) {
                 }else if (strcmp(choix_algo, "algo2") == 0) {
                     fprintf(stdout, "Lecture du fichier '%s' avec algorithme par histogramme trier...\n", argv[arg]);
                     FileReader(f, &occ, &infomem);
+                    TrieHistogramme(&occ, &infomem);
                     fclose(f);
-                    if (showres != 0){TopNmot(&occ, nbr, &infomem);}
+                    if (showres != 0){AfficherHistogramme(occ, nbr);}
                     if (logres != 0) {continue;}
                     if (showperf != 0) {showPerfs(infomem);}
                     if (logperf != 0) {continue;}
@@ -99,6 +100,12 @@ int main(int argc, const char * argv[]) {
                     Liste lst = NULL;
                     Algo_lst_chaine(f, &lst, &infomem);
                     fclose(f);
+                    if (showres != 0){Affiche_n_liste_chaine(&lst, nbr);}
+                    if (logres != 0) {continue;}
+                    if (showperf != 0) {showPerfs(infomem);}
+                    if (logperf != 0) {continue;}
+                    // Libération de la mémoire de la liste chaînée
+                    Free_liste(&lst, &infomem);
                 }else{fprintf(stderr,"Mauvais algorithme entree... KABOOM\n"); return EXIT_FAILURE;}
         }
     }

@@ -17,7 +17,7 @@ void InitHist(histogramme *h, InfoMem *i);
 
 void ReadStrHist(histogramme h);
 
-void AfficherHistogramme(histogramme occ);
+void AfficherHistogramme(histogramme occ, int n);
 
 int InHist(histogramme h, char *mot);
 
