@@ -33,7 +33,7 @@ void usage(char * fichier) {
 
 void showPerfs(InfoMem i) {
     fprintf(stdout, "\n=== Statistiques mémoire ===\n");
-    (i.cumul_temps != 0) ? fprintf(stdout, "Temps d'execution: %ld secondes\n", i.cumul_temps) : fprintf(stdout, "Temps d'execution instantanee\n");
+    (i.cumul_temps != 0) ? fprintf(stdout, "Temps d'execution: %lld secondes\n", i.cumul_temps) : fprintf(stdout, "Temps d'execution instantanee\n");
     fprintf(stdout, "Mémoire allouée: %zu bytes (%.2f Mo)\n", i.cumul_alloc, i.cumul_alloc / (1024.0 * 1024.0));
     fprintf(stdout, "Mémoire libérée: %zu bytes (%.2f Mo)\n", i.cumul_desalloc, i.cumul_desalloc / (1024.0 * 1024.0));
     fprintf(stdout, "Pic d'allocation: %zu bytes (%.2f Mo)\n", i.max_alloc, i.max_alloc / (1024.0 * 1024.0));
@@ -105,31 +105,34 @@ int main(int argc, const char *argv[]) {
             histogramme occ;
             InitHist(&occ, &infomem);
             FileReader(f, &occ, &infomem);
+            int nb_mot = Compte_mot_hist(occ);
             if (showres) {TopNmot(&occ, nbr, &infomem);}
             if (logres) {TrieHistogramme(&occ, &infomem); Ecrit_resultats_hist(fres, &occ, nbr, "algo1");}
             FreeHistogramme(&occ, &infomem);
             if (showperf) {showPerfs(infomem);}
-            if (logperf) {Ecrit_perf_hist(fperf, &infomem, Compte_mot_hist(occ), "algo1");}
+            if (logperf) {Ecrit_perf_hist(fperf, &infomem, nb_mot, "algo1");}
 
         } else if (strcmp(choix_algo, "algo2") == 0) {
             histogramme occ;
             InitHist(&occ, &infomem);
             FileReader(f, &occ, &infomem);
             TrieHistogramme(&occ, &infomem);
+            int nb_mot = Compte_mot_hist(occ);
             if (showres) {AfficherHistogramme(occ, nbr);}
             if (logres) {Ecrit_resultats_hist(fres, &occ, nbr, "algo2");}
             FreeHistogramme(&occ, &infomem);
             if (showperf) {showPerfs(infomem);}
-            if (logperf) {Ecrit_perf_hist(fperf, &infomem, Compte_mot_hist(occ), "algo2");;}
+            if (logperf) {Ecrit_perf_hist(fperf, &infomem, nb_mot, "algo2");;}
 
         } else if (strcmp(choix_algo, "algo3") == 0) {
             Liste lst = NULL;
             Algo_lst_chaine(f, &lst, &infomem);
+            int nb_mot = Compte_mot(&lst);
             if (showres) {Affiche_n_liste_chaine(&lst, nbr);}
             if (logres) {Ecrit_resultats_lst(fres, &lst, nbr, "algo3");}
             Free_liste(&lst, &infomem);
             if (showperf) {showPerfs(infomem);}
-            if (logperf) {Ecrit_performances_lst(fperf, &infomem, Compte_mot(&lst), "algo3");}
+            if (logperf) {Ecrit_performances_lst(fperf, &infomem, nb_mot, "algo3");}
 
         } else {
             fprintf(stderr, "Algorithme inconnu\n");
