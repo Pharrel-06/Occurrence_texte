@@ -29,7 +29,7 @@ void Affiche_n_liste_chaine(Cellule_mot** plst, int n);
 
 int DivLine2(char *line, int start, char *mot);
 
-void Algo_lst_chaine(FILE* fichier, Cellule_mot** plst, InfoMem* infoMem);
+void Algo_lst_chaine(FILE* fichier, Cellule_mot** plst, InfoMem* infoMem, Curse *curse);
 
 int Compte_mot(Cellule_mot** plst);
 

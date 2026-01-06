@@ -5,6 +5,11 @@
 #include <stdlib.h>
 #include <time.h>
 
+typedef struct Curse {
+    char *mot;
+    struct Curse *suiv;
+} Curse;
+
 // Structure pour la gestion de la mémoire
 typedef struct {
     size_t cumul_alloc;    // champ obligatoire : cumul de l’espace mémoire alloué
@@ -15,6 +20,8 @@ typedef struct {
     time_t temps_fin;
     time_t cumul_temps;
 } InfoMem;
+
+int EstInterdit(Curse *lst, const char *mot);
 
 void *myMalloc(size_t size, InfoMem *infoMem);
 

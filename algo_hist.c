@@ -34,16 +34,13 @@ int InHist(histogramme h, char *mot){
     return -1;
 }
 
-int isSeparator(char c)
-{
+int isSeparator(char c) {
     return (
-        c == ' '  || c == '\t' || c == '\n' ||
-        c == ','  || c == ';'  ||
-        c == '('  || c == ')'  ||
-        c == '{'  || c == '}'  ||
-        c == '['  || c == ']'  ||
-        c == ':'  || c == '?'  ||
-        c == '!'  || c == '.'
+        c == ' '  || c == '\t' || c == '\n' || 
+        c == ','  || c == ';'  || c == '('  || 
+        c == ')'  || c == '{'  || c == '}'  || 
+        c == '['  || c == ']'  || c == ':'  || 
+        c == '?'  || c == '!'  || c == '.'
     );
 }
 
@@ -80,7 +77,7 @@ int HistWordCount(histogramme h){
     return count;
 }
 
-void FileReader(FILE * fichier, histogramme *h, InfoMem *i) {
+void FileReader(FILE * fichier, histogramme *h, InfoMem *i, Curse *curse) {
     size_t size = sizeof(char) * MAX_LENGTH;
     char *buffer = (char *)myMalloc(size, i);
     char mot[42];
@@ -97,6 +94,11 @@ void FileReader(FILE * fichier, histogramme *h, InfoMem *i) {
                 if (strlen(mot) == 0) {
                     continue;
                 }
+
+                if (curse && EstInterdit(curse, mot)) {
+                    continue;
+                }
+
                 int index = InHist(*h, mot);
                 if (index != -1) {
                     h->occurrences[index]++;

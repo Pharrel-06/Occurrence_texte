@@ -1,7 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "gererMem.h"
 
+int EstInterdit(Curse *lst, const char *mot) {
+    while (lst) {
+        if (strcmp(lst->mot, mot) == 0)
+            return 1;
+        lst = lst->suiv;
+    }
+    return 0;
+}
 
 void *myMalloc(size_t size, InfoMem *infoMem) {
     void* new_malloc = (void*) malloc(size);

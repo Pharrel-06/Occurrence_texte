@@ -27,7 +27,7 @@ void MaxSizePlus(histogramme *h, InfoMem *i);
 
 int HistWordCount(histogramme h);
 
-void FileReader(FILE * fichier, histogramme *h, InfoMem *i);
+void FileReader(FILE * fichier, histogramme *h, InfoMem *i, Curse *curse);
 
 void FreeHistogramme(histogramme *h, InfoMem *i);
 

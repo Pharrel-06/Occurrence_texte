@@ -108,7 +108,7 @@ int DivLine2(char *line, int start, char *mot) {
 }
 
 // Algo entier avec les listes chainées
-void Algo_lst_chaine(FILE* fichier, Cellule_mot** plst, InfoMem* infoMem) {
+void Algo_lst_chaine(FILE* fichier, Cellule_mot** plst, InfoMem* infoMem, Curse *curse) {
     infoMem->temps_debut = time(NULL);
     // Création du buffer pour les lignes
     char* ligne = (char*) myMalloc(sizeof(char)*MAX_LENGTH, infoMem);
@@ -131,6 +131,11 @@ void Algo_lst_chaine(FILE* fichier, Cellule_mot** plst, InfoMem* infoMem) {
         // Tant que l'on a pas réccupéré un mot, on parcours la ligne
         int index_ligne = 0;
         while((index_ligne = DivLine2(ligne, index_ligne, buffer_mot)) != -1) {
+
+            if (curse && EstInterdit(curse, buffer_mot)) {
+                continue;
+            }
+
             Cellule_mot** pcell_supp = Mot_in_liste(plst, buffer_mot);
             // Le mot est dans la liste
             if (pcell_supp) {
