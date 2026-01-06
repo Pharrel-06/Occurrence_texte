@@ -89,3 +89,34 @@ plt.title("Performances: Temps d'exécution par algorithme")
 plt.ylim(0, max(times) * 1.2)
 plt.grid(axis="y")
 plt.show()
+
+# -------------------------------
+# Plot 3/4/5: Temps d'exécution de chacun des algorithmes
+# -------------------------------
+algo_name1 = algos_ordonnes[0]
+algo_name2 = algos_ordonnes[1]
+algo_name3 = algos_ordonnes[2]
+
+plt.figure()
+
+mots_1 = [r["mots"] for r in data[algo_name1]]
+temp_1 = [r["temps"] for r in data[algo_name1]]
+
+mots_2 = [r["mots"] for r in data[algo_name2]]
+temp_2 = [r["temps"] for r in data[algo_name2]]
+
+mots_3 = [r["mots"] for r in data[algo_name3]]
+temp_3 = [r["temps"] for r in data[algo_name3]]
+
+plt.plot(mots_1, temp_1, marker='o', linestyle='-', color='r', label=algo_name1)
+
+plt.plot(mots_2, temp_2, marker='o', linestyle='-', color='g', label=algo_name2)
+
+plt.plot(mots_3, temp_3, marker='o', linestyle='-', color='b', label=algo_name3)
+
+plt.xlabel("Nombre de mots")
+plt.ylabel("Temps d'exécution (s)")
+plt.title(f"Temps d'exécution de chaques algorithmes")
+plt.legend()
+plt.grid(True)
+plt.show()
