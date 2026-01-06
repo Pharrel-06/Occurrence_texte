@@ -33,7 +33,7 @@ void usage(char * fichier) {
 
 void showPerfs(InfoMem i) {
     fprintf(stdout, "\n=== Statistiques mémoire ===\n");
-    (i.cumul_temps != 0) ? fprintf(stdout, "Temps d'execution: %lld secondes\n", i.cumul_temps) : fprintf(stdout, "Temps d'execution instantanee\n");
+    (i.cumul_temps != 0) ? fprintf(stdout, "Temps d'execution: %ld secondes\n", i.cumul_temps) : fprintf(stdout, "Temps d'execution instantanee\n");
     fprintf(stdout, "Mémoire allouée: %zu bytes (%.2f Mo)\n", i.cumul_alloc, i.cumul_alloc / (1024.0 * 1024.0));
     fprintf(stdout, "Mémoire libérée: %zu bytes (%.2f Mo)\n", i.cumul_desalloc, i.cumul_desalloc / (1024.0 * 1024.0));
     fprintf(stdout, "Pic d'allocation: %zu bytes (%.2f Mo)\n", i.max_alloc, i.max_alloc / (1024.0 * 1024.0));
